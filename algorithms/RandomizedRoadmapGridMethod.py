@@ -2,18 +2,13 @@ from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy, QgsGraphAnalyzer
 # uav_find_path.algorithms.abstract
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
+from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
 from algorithms.addition.GridForRoadmap import GridForRoadmap
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
-import math
 import random
-import functools
 import time
-import multiprocessing
-import sys
 import math
-import ogr
-import numpy as np
 
 
 class GeometryPointExpand:
@@ -150,7 +145,6 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         # точка 2 расширенного вектора - x4, y4
         # расширенный вектор - ev
         # длина вектора - 'name'_len
-
         x3 = self.starting_point.x() - (self.target_point.x() - self.starting_point.x()) * coef_length
         y3 = self.starting_point.y() - (self.target_point.y() - self.starting_point.y()) * coef_length
         x4 = self.target_point.x() + (self.target_point.x() - self.starting_point.x()) * coef_length
@@ -189,32 +183,21 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         hall_polygon = QgsGeometry.fromPolygonXY([[point1, point2, point4, point3]])
         print(hall_polygon)
 
-        # region Визуализация коридора, УДАЛИТЬ ПОЗЖЕ
-        layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp")
-        layer.dataProvider().truncate()
-        feats = []
-        for i in [point1, point2, point4, point3]:
-            point = QgsGeometry.fromPointXY(i)
-            feat = QgsFeature(layer.fields())
-            feat.setGeometry(point)
-            feats.append(feat)
-
-        # feat = QgsFeature(layer.fields())
-        # feat.setGeometry(hall_polygon)
-        # feats.append(feat)
-
-        layer.dataProvider().addFeatures(feats)
-        layer.triggerRepaint()
-        print("HERE")
-        # endregion
-
+        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
+                                           "points_import.shp",
+                                           [point1, point2, point4, point3])
+        # layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp")
+        # layer.dataProvider().truncate()
+        # feats = []
+        # for i in [point1, point2, point4, point3]:
+        #     point = QgsGeometry.fromPointXY(i)
+        #     feat = QgsFeature(layer.fields())
+        #     feat.setGeometry(point)
+        #     feats.append(feat)
         #
-        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
-        #
+        # layer.dataProvider().addFeatures(feats)
+        # layer.triggerRepaint()
+        # print("HERE")
 
     def __get_borders(self):
         # Отвечает за расширение границ прямоугольника
@@ -436,3 +419,4 @@ if __name__ == '__main__':
     obstacles = QgsVectorLayer(path)
     check = RandomizedRoadmapGridMethod(point1, point2, obstacles, proj)
     check._get_hall()
+
