@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/uav_find_path" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>

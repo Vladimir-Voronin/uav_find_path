@@ -1,0 +1,60 @@
+from qgis.analysis import QgsGraph, QgsGraphAnalyzer, QgsNetworkDistanceStrategy
+from qgis.core import *
+
+QgsApplication.setPrefixPath(r'C:\OSGEO4~1\apps\qgis', True)
+qgs = QgsApplication([], False)
+qgs.initQgis()
+
+project = QgsProject.instance()
+project.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
+
+graph = QgsGraph()
+point0 = QgsGeometry.fromPointXY(QgsPointXY(36, 44)).asPoint()
+point1 = QgsGeometry.fromPointXY(QgsPointXY(37, 45)).asPoint()
+point2 = QgsGeometry.fromPointXY(QgsPointXY(38, 46)).asPoint()
+point3 = QgsGeometry.fromPointXY(QgsPointXY(39, 47)).asPoint()
+point4 = QgsGeometry.fromPointXY(QgsPointXY(40, 48)).asPoint()
+point5 = QgsGeometry.fromPointXY(QgsPointXY(41, 49)).asPoint()
+
+a = graph.addVertex(point0)
+graph.addVertex(point1)
+b = graph.addVertex(point2)
+graph.addVertex(point3)
+graph.addVertex(point4)
+graph.addVertex(point5)
+line = QgsFeature()
+line.setGeometry(QgsGeometry.fromPolylineXY([point0, point2]))
+graph.addEdge(a, b, [QgsNetworkDistanceStrategy().cost(25, line)])
+edge = graph.edge(0)
+print(edge.cost(0))
+print(edge.strategies())
+search = QgsGraphAnalyzer()
+a = search.dijkstra(graph, 0, 0)
+print(a[0])
+b = search.shortestTree(graph, 0, 0)
+print(b.vertexCount())
+# qgs_graph = QgsGraph()
+
+#
+# qgs_graph.addVertex(point0.asPoint())
+# qgs_graph.addVertex(point1.asPoint())
+# qgs_graph.addVertex(point2.asPoint())
+# qgs_graph.addVertex(point3.asPoint())
+# qgs_graph.addVertex(point4.asPoint())
+# qgs_graph.addVertex(point5.asPoint())
+# qgs_graph.addVertex(point6.asPoint())
+# qgs_graph.addVertex(point7.asPoint())
+#
+# qgs_graph.addEdge(0, 1, [100])
+# qgs_graph.addEdge(1, 2, [100])
+# qgs_graph.addEdge(2, 3, [100])
+# qgs_graph.addEdge(3, 4, [100])
+# qgs_graph.addEdge(0, 5, [100])
+# qgs_graph.addEdge(5, 4, [100])
+#
+# edge = qgs_graph.edge(0)
+# print(edge.strategies())
+#
+# search = QgsGraphAnalyzer()
+# a = search.dijkstra(qgs_graph, 0, 2)
+# print(a)
