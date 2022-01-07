@@ -137,13 +137,10 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         return list_of_geometry_handled
 
     def _get_hall(self):
-        print("ALALALALALALALA"
-              "ALALALALALLALAL"
-              "ALALLALALALALALAL")
         # объект будет хранить 4 точки, в конце возвратим прямоугольник
         hall = [[0, 0], [0, 0], [0, 0], [0, 0]]
         # Коэфицент расширение коридора в длину
-        coef_length = 0.15
+        coef_length = 0.1
         # Фиксированная ширина коридора (деленная на 2)
         hall_width = 200
 
@@ -153,58 +150,37 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         # точка 2 расширенного вектора - x4, y4
         # расширенный вектор - ev
         # длина вектора - 'name'_len
-        line_length = ((self.target_point.x() - self.starting_point.x()) ** 2 +
-                       (self.target_point.y() - self.starting_point.y()) ** 2) ** 0.5
 
         x3 = self.starting_point.x() - (self.target_point.x() - self.starting_point.x()) * coef_length
         y3 = self.starting_point.y() - (self.target_point.y() - self.starting_point.y()) * coef_length
         x4 = self.target_point.x() + (self.target_point.x() - self.starting_point.x()) * coef_length
         y4 = self.target_point.y() + (self.target_point.y() - self.starting_point.y()) * coef_length
-        print("point 3", x3, y3)
-        print("point 4", x4, y4)
 
         ev = [x4 - x3, y4 - y3]
-
         ev_len = math.sqrt((x4 - x3) ** 2 + (y4 - y3) ** 2)
         # Высчитываем коэф уменьшения
         coef_decr = ev_len / hall_width
-        print("Coef уменьшения", coef_decr)
+
         ev_decr = [0, 0]
         ev_decr[0], ev_decr[1] = ev[0] / coef_decr, ev[1] / coef_decr
 
-        point_turn_x_1 = x3 + ev_decr[0]
-        point_turn_y_1 = y3 + ev_decr[1]
-        point_turn_x_2 = x4 - ev_decr[0]
-        point_turn_y_2 = y4 - ev_decr[1]
-
-        print(point_turn_x_1)
-        print(point_turn_y_1)
-        print(point_turn_x_2)
-        print(point_turn_y_2)
-
-        angle_turn_1 = 90
-        angle_turn_2 = 270
+        cos_ev = ev[0] / ev_len
+        sin_ev = ev[1] / ev_len
+        Xp = hall_width * sin_ev
+        Yp = hall_width * cos_ev
 
         # Точки расположены в порядке создания прямоугольника, ЭТО НЕ ТОЧКИ ЭТО ПРИРАЩЕНИЯ
-        hall[0][0] = self.starting_point.x() + point_turn_x_1 * math.cos(angle_turn_1) - point_turn_y_1 * math.sin(
-            angle_turn_1)
-        hall[0][1] = self.starting_point.y() + point_turn_x_1 * math.sin(angle_turn_1) + point_turn_y_1 * math.cos(
-            angle_turn_1)
+        hall[0][0] = x3 + Xp
+        hall[0][1] = y3 - Yp
 
-        hall[1][0] = self.starting_point.x() + point_turn_x_1 * math.cos(angle_turn_2) - point_turn_y_1 * math.sin(
-            angle_turn_2)
-        hall[1][1] = self.starting_point.y() + point_turn_x_1 * math.sin(angle_turn_2) + point_turn_y_1 * math.cos(
-            angle_turn_2)
+        hall[1][0] = x3 - Xp
+        hall[1][1] = y3 + Yp
 
-        hall[2][0] = self.target_point.x() + point_turn_x_2 * math.cos(angle_turn_2) - point_turn_y_2 * math.sin(
-            angle_turn_2)
-        hall[2][1] = self.target_point.y() + point_turn_x_2 * math.sin(angle_turn_2) + point_turn_y_2 * math.cos(
-            angle_turn_2)
+        hall[2][0] = x4 - Xp
+        hall[2][1] = y4 + Yp
 
-        hall[3][0] = self.target_point.x() + point_turn_x_2 * math.cos(angle_turn_1) - point_turn_y_2 * math.sin(
-            angle_turn_1)
-        hall[3][1] = self.target_point.y() + point_turn_x_2 * math.sin(angle_turn_1) + point_turn_y_2 * math.cos(
-            angle_turn_1)
+        hall[3][0] = x4 + Xp
+        hall[3][1] = y4 - Yp
 
         point1 = QgsPointXY(hall[0][0], hall[0][1])
         point2 = QgsPointXY(hall[1][0], hall[1][1])
@@ -231,6 +207,14 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         layer.triggerRepaint()
         print("HERE")
         # endregion
+
+        #
+        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+        # LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL
+        #
 
     def __get_borders(self):
         # Отвечает за расширение границ прямоугольника
