@@ -2,6 +2,8 @@ from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy, QgsGraphAnalyzer
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
+from algorithms.addition.Hall import Hall
+from algorithms.addition.RandomizeFunctions import RandomizeFunctions
 import math
 import random
 import functools
@@ -51,14 +53,19 @@ class RandomizedRoadmapMethod(SearchMethodAbstract):
         self.target_point_geometry = QgsGeometry.fromPointXY(QgsPointXY(self.target_point.x(),
                                                                         self.target_point.y()))
 
+        self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
+
         # borders coordinates
         self.left_x, self.right_x, self.bottom_y, self.top_y = self.__get_borders()
 
         # get mulmultipolygon layer
-        self.multi_polygon_geometry = RandomizedRoadmapMethod.__create_multipolygon_geometry(obstacles, self.left_x,
-                                                                                             self.right_x,
-                                                                                             self.bottom_y, self.top_y,
-                                                                                             project)
+        # self.multi_polygon_geometry = RandomizedRoadmapMethod.__create_multipolygon_geometry(obstacles, self.left_x,
+        #                                                                                      self.right_x,
+        #                                                                                      self.bottom_y, self.top_y,
+        #                                                                                      project)
+
+        self.multi_polygon_geometry = self.hall.create_multipolygon_geometry_by_hall(obstacles, project)
+
         # constants
         self.const_square_meters = 400
         self.const_sight_of_points = 12
@@ -69,7 +76,6 @@ class RandomizedRoadmapMethod(SearchMethodAbstract):
         features = obstacles.getFeatures()
 
         list_of_geometry = []
-        list_of_polygons = []
         # Data for transform to EPSG: 3395
         transformcontext = project.transformContext()
         source_projection = obstacles.crs()
@@ -160,61 +166,23 @@ class RandomizedRoadmapMethod(SearchMethodAbstract):
 
         return list_of_points
 
-    def __get_list_of_points_multiprocessing(self, amount_of_points, number_of_process=6):
-        print(1)
-        # print(sys.getfilesystemencoding())
-        number_of_points_in_process = math.ceil(amount_of_points / number_of_process)
-        reminder = amount_of_points - number_of_points_in_process * (number_of_process - 1)
-        list_of_points = []
-        queue = multiprocessing.Queue()
-        procs = []
-        a = multiprocessing.Process(target=f, args=(1,))
-        print(2)
-        a.start()
-        print(3)
-        print(type(self.path))
-        for i in range(number_of_process):
-            if i == number_of_process - 1:
-                p = multiprocessing.Process(target=get_part_of_list, args=(reminder,
-                                                                           self.left_x,
-                                                                           self.right_x,
-                                                                           self.bottom_y,
-                                                                           self.top_y,
-                                                                           self.path,
-                                                                           queue,))
-            else:
-                p = multiprocessing.Process(target=get_part_of_list, args=(number_of_points_in_process,
-                                                                           self.left_x,
-                                                                           self.right_x,
-                                                                           self.bottom_y,
-                                                                           self.top_y,
-                                                                           self.path,
-                                                                           queue,))
-            procs.append(p)
-            p.start()
-
-        for p in procs:
-            p.join()
-        queue.put("END")
-        msg = 0
-        while msg is not "END":
-            msg = queue.get()
-            list_of_points.append(msg)
-        print("Length ", len(list_of_points))
-        print(list_of_points)
-        return list_of_points
-
     def __create_graph(self):
-        area = (self.right_x - self.left_x) * (self.top_y - self.bottom_y)
         # 1 point for "self.const_square_meters" square meters
-        amount_of_points = math.ceil(area / self.const_square_meters)
+        amount_of_points = math.ceil(self.hall.square / self.const_square_meters)
+
 
         # __get_list_of_points or __get_list_of_points_multiprocessing
-        list_of_points = self.__get_list_of_points(amount_of_points)
+        # list_of_points = self.__get_list_of_points(amount_of_points)
+
+        list_of_points = RandomizeFunctions.get_random_points(self.hall, amount_of_points, self.multi_polygon_geometry)
 
         # adding starting and target points + points around of them
-        list_points_around_starting = self.__add_points_around(self.starting_point, 20)
-        list_points_around_target = self.__add_points_around(self.target_point, 20)
+        list_points_around_starting = RandomizeFunctions.get_points_around(self.starting_point,
+                                                                           20,
+                                                                           self.multi_polygon_geometry)
+        list_points_around_target = RandomizeFunctions.get_points_around(self.target_point,
+                                                                           20,
+                                                                           self.multi_polygon_geometry)
 
         list_of_points.extend(list_points_around_starting)
         list_of_points.extend(list_points_around_target)
@@ -342,8 +310,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7890839, 47.2690766))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.777808, 47.277062))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7880504,47.2698874))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.787049,47.274414))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
     obstacles = QgsVectorLayer(path)
     print(obstacles)

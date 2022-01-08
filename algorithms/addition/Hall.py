@@ -5,23 +5,30 @@ from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy, QgsGraphAnalyzer
 
 class Hall:
     def __init__(self, source_point_x, source_point_y, target_point_x, target_point_y,
-                 hall_width=200, coef_length=0.1):
+                 hall_width=150, coef_length=0.1):
         self.source_point_x = source_point_x
         self.source_point_y = source_point_y
         self.target_point_x = target_point_x
         self.target_point_y = target_point_y
 
+        # Координаты расширенного вектора
         self.start_extended_point_x = None
         self.start_extended_point_y = None
         self.target_extended_point_x = None
         self.target_extended_point_y = None
 
+        # Приращения
+        self.Xp = None
+        self.Yp = None
+
         self.hall_width = hall_width
         self.coef_length = coef_length
 
         self.hall_polygon = None
+        self.square = None
+        self.get_hall()
 
-    def _get_hall(self):
+    def get_hall(self):
         # объект будет хранить 4 точки, в конце возвратим прямоугольник
         hall = [[0, 0], [0, 0], [0, 0], [0, 0]]
         # Коэфицент расширение коридора в длину
@@ -35,10 +42,10 @@ class Hall:
         # точка 2 расширенного вектора - x4, y4
         # расширенный вектор - ev
         # длина вектора - 'name'_len
-        x3 = self.starting_point.x() - (self.target_point.x() - self.starting_point.x()) * coef_length
-        y3 = self.starting_point.y() - (self.target_point.y() - self.starting_point.y()) * coef_length
-        x4 = self.target_point.x() + (self.target_point.x() - self.starting_point.x()) * coef_length
-        y4 = self.target_point.y() + (self.target_point.y() - self.starting_point.y()) * coef_length
+        x3 = self.source_point_x - (self.target_point_x - self.source_point_x) * coef_length
+        y3 = self.source_point_y - (self.target_point_y - self.source_point_y) * coef_length
+        x4 = self.target_point_x + (self.target_point_x - self.source_point_x) * coef_length
+        y4 = self.target_point_y + (self.target_point_y - self.source_point_y) * coef_length
 
         self.start_extended_point_x = x3
         self.start_extended_point_y = y3
@@ -55,31 +62,30 @@ class Hall:
 
         cos_ev = ev[0] / ev_len
         sin_ev = ev[1] / ev_len
-        Xp = hall_width * sin_ev
-        Yp = hall_width * cos_ev
+        self.Xp = hall_width * sin_ev
+        self.Yp = hall_width * cos_ev
+        self.square = (ev_len * self.hall_width * 2)
 
         # Точки расположены в порядке создания прямоугольника, ЭТО НЕ ТОЧКИ ЭТО ПРИРАЩЕНИЯ
-        hall[0][0] = x3 + Xp
-        hall[0][1] = y3 - Yp
+        hall[0][0] = x3 + self.Xp
+        hall[0][1] = y3 - self.Yp
 
-        hall[1][0] = x3 - Xp
-        hall[1][1] = y3 + Yp
+        hall[1][0] = x3 - self.Xp
+        hall[1][1] = y3 + self.Yp
 
-        hall[2][0] = x4 - Xp
-        hall[2][1] = y4 + Yp
+        hall[2][0] = x4 - self.Xp
+        hall[2][1] = y4 + self.Yp
 
-        hall[3][0] = x4 + Xp
-        hall[3][1] = y4 - Yp
+        hall[3][0] = x4 + self.Xp
+        hall[3][1] = y4 - self.Yp
 
         point1 = QgsPointXY(hall[0][0], hall[0][1])
         point2 = QgsPointXY(hall[1][0], hall[1][1])
         point3 = QgsPointXY(hall[2][0], hall[2][1])
         point4 = QgsPointXY(hall[3][0], hall[3][1])
-        self.hall_polygon = QgsGeometry.fromPolygonXY([[point1, point2, point4, point3]])
+        self.hall_polygon = QgsGeometry.fromPolygonXY([[point1, point2, point3, point4]])
 
         return self.hall_polygon
-
-        # endregion
 
     def visualize(self, address):
         # region Визуализация коридора, УДАЛИТЬ ПОЗЖЕ
@@ -99,3 +105,51 @@ class Hall:
         layer.dataProvider().addFeatures(feats)
         layer.triggerRepaint()
         print("HERE")
+
+    def create_multipolygon_geometry_by_hall(self, obstacles, project):
+        features = obstacles.getFeatures()
+
+        list_of_geometry = []
+        # Data for transform to EPSG: 3395
+        transformcontext = project.transformContext()
+        source_projection = obstacles.crs()
+        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
+        xform = QgsCoordinateTransform(source_projection, general_projection, transformcontext)
+        for feature in features:
+            geom = feature.geometry()
+
+            # Transform to EPSG 3395
+            check = geom.asGeometryCollection()[0].asPolygon()
+            list_of_points_to_polygon = []
+            for point in check[0]:
+                point = xform.transform(point.x(), point.y())
+                list_of_points_to_polygon.append(point)
+
+            create_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
+            list_of_geometry.append(create_polygon)
+        polygon = self.hall_polygon
+
+        list_of_geometry_handled = []
+        for geometry in list_of_geometry:
+            if polygon.distance(geometry) == 0.0:
+                list_of_geometry_handled.append(geometry)
+        print("objects_number: ", len(list_of_geometry_handled))
+        # because we cant add Part of geometry to empty OgsGeometry instance
+        multi_polygon_geometry = QgsGeometry.fromPolygonXY([[QgsPointXY(1, 1), QgsPointXY(2, 2), QgsPointXY(2, 1)]])
+
+        for polygon in list_of_geometry_handled:
+            multi_polygon_geometry.addPartGeometry(polygon)
+
+        multi_polygon_geometry.deletePart(0)
+
+        vlayer1 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_polygon.shp")
+        vlayer1.dataProvider().truncate()
+
+        feats = []
+        id_number = -1
+        feat = QgsFeature(vlayer1.fields())
+        feat.setGeometry(multi_polygon_geometry)
+        feats.append(feat)
+        vlayer1.dataProvider().addFeatures(feats)
+
+        return multi_polygon_geometry

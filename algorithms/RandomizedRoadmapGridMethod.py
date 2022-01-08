@@ -6,20 +6,11 @@ from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
 from algorithms.addition.GridForRoadmap import GridForRoadmap
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
+from algorithms.addition import GeometryPointExpand
+from algorithms.addition import Hall
 import random
 import time
 import math
-
-
-class GeometryPointExpand:
-    current_id = -1
-
-    def __init__(self, point, n_row, n_column):
-        GeometryPointExpand.current_id += 1
-        self.point = point
-        self.n_row = n_row
-        self.n_column = n_column
-        self.id = GeometryPointExpand.current_id
 
 
 class RandomizedRoadmapGridMethod(SearchMethodAbstract):
@@ -262,6 +253,10 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         return list_of_points
 
     def __create_graph(self):
+        # with hall
+        my_hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
+
+
         # assign geometry to the cell
         for row in self.grid.cells:
             for cell in row:
