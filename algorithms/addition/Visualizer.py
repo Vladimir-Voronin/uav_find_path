@@ -21,11 +21,8 @@ class Visualizer:
         layer.triggerRepaint()
 
     @staticmethod
-    def create_new_layer_points(address, file_name, points: list):
-        random_string = ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) for _ in range(6))
-        full_address = address + '/' + file_name + random_string + '.shp'
-
-        layer = QgsVectorLayer(full_address, 'points', 'ogr')
+    def create_new_layer_points(address, points: list):
+        layer = QgsVectorLayer(address, 'points', 'ogr')
 
         layer.dataProvider().truncate()
 

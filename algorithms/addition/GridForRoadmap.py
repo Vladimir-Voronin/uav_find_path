@@ -41,7 +41,6 @@ class GridForRoadmap:
             for k in range(min_column, max_column + 1):
                 numbers += self.cells[i][k].number_of_polyg
                 list_of_cells.append(self.cells[i][k])
-        # print(f"{numbers}", end=" ")
 
         polygon = QgsGeometry(list_of_cells[0].geometry)
         for i in range(1, len(list_of_cells)):
