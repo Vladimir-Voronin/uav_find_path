@@ -22,19 +22,19 @@ class QgsGraphSearcher:
         if self.check_to_pave_the_way():
             return self.dijkstra_result[1][self.id_target]
 
-    def get_shortest_tree_features_list(self, layer):
+    def get_shortest_tree_features_list(self):
         feats = []
         for i in range(self.shortest_tree.edgeCount()):
             a = self.shortest_tree.edge(i)
             line = QgsGeometry.fromPolylineXY([self.shortest_tree.vertex(a.fromVertex()).point(),
                                                self.shortest_tree.vertex(a.toVertex()).point()])
-            feat = QgsFeature(layer.fields())
+            feat = QgsFeature()
             feat.setId(i)
             feat.setGeometry(line)
             feats.append(feat)
         return feats
 
-    def get_features_from_min_path(self, layer):
+    def get_features_from_min_path(self):
         shortest_tree_target_point_int = self.shortest_tree.findVertex(self.target_point)
         source_int = self.shortest_tree.findVertex(self.starting_point)
         path = []
@@ -51,7 +51,7 @@ class QgsGraphSearcher:
             # to layer
             line = QgsGeometry.fromPolylineXY([self.shortest_tree.vertex(edge.fromVertex()).point(),
                                                self.shortest_tree.vertex(edge.toVertex()).point()])
-            feat = QgsFeature(layer.fields())
+            feat = QgsFeature()
             feat.setId(edge_int)
             feat.setGeometry(line)
             feats.append(feat)

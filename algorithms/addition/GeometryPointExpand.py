@@ -1,3 +1,5 @@
+from qgis.core import *
+
 class GeometryPointExpand:
     current_id = -1
 
@@ -8,3 +10,12 @@ class GeometryPointExpand:
         self.n_column = n_column
         self.id = GeometryPointExpand.current_id
 
+    @staticmethod
+    def transform_to_list_of_feats(points: list):
+        feats = []
+        for point in points:
+            feat = QgsFeature()
+            feat.setId(point.id)
+            feat.setGeometry(point.point)
+            feats.append(feat)
+        return feats

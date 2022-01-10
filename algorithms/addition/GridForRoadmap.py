@@ -48,13 +48,8 @@ class GridForRoadmap:
             polygon.addPartGeometry(list_of_cells[i].geometry)
         return polygon
 
-    def vizualize(self):
-        QgsApplication.setPrefixPath(r'C:\OSGEO4~1\apps\qgis', True)
-        qgs = QgsApplication([], False)
-        qgs.initQgis()
-
-        proj = QgsProject.instance()
-        proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
+    def vizualize(self, project):
+        project.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
         layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\grid.shp")
         layer.dataProvider().truncate()
         feats = []

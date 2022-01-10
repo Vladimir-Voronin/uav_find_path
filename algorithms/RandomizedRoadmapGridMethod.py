@@ -6,8 +6,9 @@ from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
 from algorithms.addition.GridForRoadmap import GridForRoadmap
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
-from algorithms.addition import GeometryPointExpand
-from algorithms.addition import Hall
+from algorithms.addition.GeometryPointExpand import GeometryPointExpand
+from algorithms.addition.RandomizeFunctions import RandomizeFunctions
+from algorithms.addition.Hall import Hall
 import random
 import time
 import math
@@ -42,23 +43,26 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         self.target_point_geometry = QgsGeometry.fromPointXY(QgsPointXY(self.target_point.x(),
                                                                         self.target_point.y()))
 
-        # borders coordinates
-        self.left_x, self.right_x, self.bottom_y, self.top_y = self.__get_borders()
+        self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
 
-        # get mulmultipolygon layer
-        self.list_of_polygons = RandomizedRoadmapGridMethod.__create_polygons_geometry(obstacles, self.left_x,
-                                                                                       self.right_x,
-                                                                                       self.bottom_y, self.top_y,
-                                                                                       project)
+        # borders coordinates
+        self.left_x, self.right_x, self.bottom_y, self.top_y = None, None, None, None
+
+        self.list_of_polygons = self.hall.create_list_of_polygons(obstacles, project)
+
         self.grid = self.__create_grid()
 
     def __create_grid(self):
+        self.left_x = min(self.hall.point1.x(), self.hall.point2.x(), self.hall.point3.x(), self.hall.point4.x())
+        self.right_x = max(self.hall.point1.x(), self.hall.point2.x(), self.hall.point3.x(), self.hall.point4.x())
+        self.bottom_y = min(self.hall.point1.y(), self.hall.point2.y(), self.hall.point3.y(), self.hall.point4.y())
+        self.top_y = max(self.hall.point1.y(), self.hall.point2.y(), self.hall.point3.y(), self.hall.point4.y())
+
         number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step)
         number_of_columns = math.ceil((self.right_x - self.left_x) / self.step)
-        print(self.top_y - self.bottom_y)
-        print(self.right_x - self.left_x)
         grid = GridForRoadmap(number_of_rows, number_of_columns)
-        print("SP1")
+        print("rows: ", number_of_columns)
+        print("columns: ", number_of_columns)
         lx = self.left_x
         ly = self.top_y
         a = 0
@@ -86,190 +90,27 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
             coor_row += 1
         return grid
 
-    @staticmethod
-    def __create_polygons_geometry(obstacles, left_x, right_x, bottom_y, top_y, project):
-        features = obstacles.getFeatures()
-
-        list_of_geometry = []
-        list_of_polygons = []
-        # Data for transform to EPSG: 3395
-        transformcontext = project.transformContext()
-        source_projection = obstacles.crs()
-        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
-        xform = QgsCoordinateTransform(source_projection, general_projection, transformcontext)
-        for feature in features:
-            geom = feature.geometry()
-
-            # Transform to EPSG 3395
-            check = geom.asGeometryCollection()[0].asPolygon()
-            list_of_points_to_polygon = []
-            for point in check[0]:
-                point = xform.transform(point.x(), point.y())
-                list_of_points_to_polygon.append(point)
-
-            create_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
-            list_of_geometry.append(create_polygon)
-        polygon = QgsGeometry.fromPolygonXY([[QgsPointXY(left_x, bottom_y),
-                                              QgsPointXY(right_x, bottom_y),
-                                              QgsPointXY(right_x, top_y),
-                                              QgsPointXY(left_x, top_y)]])
-
-        list_of_geometry_handled = []
-        for geometry in list_of_geometry:
-            if polygon.distance(geometry) == 0.0:
-                list_of_geometry_handled.append(geometry)
-        # because we cant add Part of geometry to empty OgsGeometry instance
-        print(list_of_geometry_handled)
-        return list_of_geometry_handled
-
-    def _get_hall(self):
-        # объект будет хранить 4 точки, в конце возвратим прямоугольник
-        hall = [[0, 0], [0, 0], [0, 0], [0, 0]]
-        # Коэфицент расширение коридора в длину
-        coef_length = 0.1
-        # Фиксированная ширина коридора (деленная на 2)
-        hall_width = 200
-
-        # Далее:
-        # Изначальный вектор - a
-        # точка 1 расширенного вектора - x3, y3
-        # точка 2 расширенного вектора - x4, y4
-        # расширенный вектор - ev
-        # длина вектора - 'name'_len
-        x3 = self.starting_point.x() - (self.target_point.x() - self.starting_point.x()) * coef_length
-        y3 = self.starting_point.y() - (self.target_point.y() - self.starting_point.y()) * coef_length
-        x4 = self.target_point.x() + (self.target_point.x() - self.starting_point.x()) * coef_length
-        y4 = self.target_point.y() + (self.target_point.y() - self.starting_point.y()) * coef_length
-
-        ev = [x4 - x3, y4 - y3]
-        ev_len = math.sqrt((x4 - x3) ** 2 + (y4 - y3) ** 2)
-        # Высчитываем коэф уменьшения
-        coef_decr = ev_len / hall_width
-
-        ev_decr = [0, 0]
-        ev_decr[0], ev_decr[1] = ev[0] / coef_decr, ev[1] / coef_decr
-
-        cos_ev = ev[0] / ev_len
-        sin_ev = ev[1] / ev_len
-        Xp = hall_width * sin_ev
-        Yp = hall_width * cos_ev
-
-        # Точки расположены в порядке создания прямоугольника, ЭТО НЕ ТОЧКИ ЭТО ПРИРАЩЕНИЯ
-        hall[0][0] = x3 + Xp
-        hall[0][1] = y3 - Yp
-
-        hall[1][0] = x3 - Xp
-        hall[1][1] = y3 + Yp
-
-        hall[2][0] = x4 - Xp
-        hall[2][1] = y4 + Yp
-
-        hall[3][0] = x4 + Xp
-        hall[3][1] = y4 - Yp
-
-        point1 = QgsPointXY(hall[0][0], hall[0][1])
-        point2 = QgsPointXY(hall[1][0], hall[1][1])
-        point3 = QgsPointXY(hall[2][0], hall[2][1])
-        point4 = QgsPointXY(hall[3][0], hall[3][1])
-        hall_polygon = QgsGeometry.fromPolygonXY([[point1, point2, point4, point3]])
-        print(hall_polygon)
-
-        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
-                                           "points_import.shp",
-                                           [point1, point2, point4, point3])
-        # layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp")
-        # layer.dataProvider().truncate()
-        # feats = []
-        # for i in [point1, point2, point4, point3]:
-        #     point = QgsGeometry.fromPointXY(i)
-        #     feat = QgsFeature(layer.fields())
-        #     feat.setGeometry(point)
-        #     feats.append(feat)
-        #
-        # layer.dataProvider().addFeatures(feats)
-        # layer.triggerRepaint()
-        # print("HERE")
-
-    def __get_borders(self):
-        # Отвечает за расширение границ прямоугольника
-        coef_extand = 0.08
-
-        left_x = self.starting_point.x() if self.starting_point.x() < self.target_point.x() else self.target_point.x()
-        right_x = self.starting_point.x() if self.starting_point.x() > self.target_point.x() else self.target_point.x()
-        bottom_y = self.starting_point.y() if self.starting_point.y() < self.target_point.y() else self.target_point.y()
-        top_y = self.starting_point.y() if self.starting_point.y() > self.target_point.y() else self.target_point.y()
-
-        expand_constant_x = (right_x - left_x) * coef_extand
-        expand_constant_y = (top_y - bottom_y) * coef_extand
-
-        left_x = left_x - expand_constant_x
-        right_x = right_x + expand_constant_x
-        bottom_y = bottom_y - expand_constant_y
-        top_y = top_y + expand_constant_y
-
-        return left_x, right_x, bottom_y, top_y
-
-    # private method, which returns one checked point
-    def __add_point(self):
-        x = random.uniform(self.left_x, self.right_x)
-        y = random.uniform(self.bottom_y, self.top_y)
-        point = QgsGeometry.fromPointXY(QgsPointXY(x, y))
-        cell = self.grid.difine_point(point)
-        if cell.geometry.distance(point) > 0.0:
-            point_expand = GeometryPointExpand(point, cell.n_row, cell.n_column)
-            return point_expand
-        else:
-            return self.__add_point()
-
-    # method for starting and target point, return list of points around this points
-    def __add_points_around(self, source_point, distance):
-        # source coordinates
-        x_source = source_point.x()
-        y_source = source_point.y()
-        # angle
-        f = 0
-        shift = math.pi / 6
-        points_around = []
-        while f < 2 * math.pi:
-            x = x_source + distance * math.cos(f)
-            y = y_source + distance * math.sin(f)
-            point = QgsGeometry.fromPointXY(QgsPointXY(x, y))
-            cell = self.grid.difine_point(point)
-            if cell is None:
-                break
-            if cell.geometry.distance(point) > 0.0:
-                point_expand = GeometryPointExpand(point, cell.n_row, cell.n_column)
-                points_around.append(point_expand)
-            f += shift
-        return points_around
-
-    def __get_list_of_points(self, amount_of_points):
-        list_of_points = []
-
-        for i in range(amount_of_points):
-            point = self.__add_point()
-            list_of_points.append(point)
-
-        return list_of_points
+    def get_shorter_path(self):
+        pass
 
     def __create_graph(self):
         # with hall
-        my_hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
-
+        self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
 
         # assign geometry to the cell
         for row in self.grid.cells:
             for cell in row:
                 cell.set_geometry(self.list_of_polygons)
 
-        area = (self.right_x - self.left_x) * (self.top_y - self.bottom_y)
+        self.grid.vizualize(self.project)
         # 1 point for "self.const_square_meters" square meters
-        amount_of_points = math.ceil(area / self.const_square_meters)
-        list_of_points = self.__get_list_of_points(amount_of_points)
+        amount_of_points = math.ceil(self.hall.square / self.const_square_meters)
+
+        list_of_points = RandomizeFunctions.get_random_extended_points(self.hall, amount_of_points, self.grid)
 
         # adding starting and target points + points around of them
-        list_points_around_starting = self.__add_points_around(self.starting_point, 20)
-        list_points_around_target = self.__add_points_around(self.target_point, 20)
+        list_points_around_starting = RandomizeFunctions.get_extended_points_around(self.starting_point, 20, self.grid)
+        list_points_around_target = RandomizeFunctions.get_extended_points_around(self.target_point, 20, self.grid)
 
         list_of_points.extend(list_points_around_starting)
         list_of_points.extend(list_points_around_target)
@@ -280,19 +121,14 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
 
         list_of_points.append(start_point_expand)
         list_of_points.append(target_point_expand)
-        # region display points, may delete
-        vlayer1 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp")
-        vlayer1.dataProvider().truncate()
 
-        feats = []
-        for point in list_of_points:
-            feat = QgsFeature(vlayer1.fields())
-            feat.setId(point.id)
-            feat.setGeometry(point.point)
-            feats.append(feat)
-        vlayer1.dataProvider().addFeatures(feats)
-        vlayer1.triggerRepaint()
+        # region display points, may delete
+        Visualizer.update_layer_by_extended_points(
+            r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp",
+            list_of_points, True)
         # endregion
+
+        feats = GeometryPointExpand.transform_to_list_of_feats(list_of_points)
 
         qgs_graph = QgsGraph()
         for point in list_of_points:
@@ -300,19 +136,12 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         index = QgsSpatialIndex()
         index.addFeatures(feats)
 
-        vlayer2 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_line.shp")
-        vlayer2.dataProvider().truncate()
         # list to except double edges
         list_of_excepts = []
         # list to dublicate backwards
         list_to_duplicate_backwards = []
         # list_of_lines contain type QgsGeometry
         list_of_lines = []
-        # feats_line contain type QgsFeature
-        feats_line = []
-        id_number = -1
-        list_of_ticks = []
-        tick3 = time.perf_counter()
         for id_1, point in enumerate(feats):
             nearest = index.nearestNeighbor(point.geometry().asPoint(), self.const_sight_of_points)
             nearest.pop(0)
@@ -328,17 +157,12 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
                     geometry = self.grid.get_multipolygon_by_points(list_of_points[id_1],
                                                                     list_of_points[nearest_point_id])
                     if geometry.distance(line):
-                        pass
                         # add to list of duplicates backwards, ADDING IS BACKWARD
                         list_to_duplicate_backwards.append([nearest_point_id, id_1])
                         # # add to list_of_lines # QgsGeometry
                         list_of_lines.append(line)
-                        id_number += 1
-                        # Create QgsFeature and add to feats_line
-                        feat = QgsFeature(vlayer2.fields())
-                        feat.setId(id_number)
+                        feat = QgsFeature()
                         feat.setGeometry(line)
-                        feats_line.append(feat)
                         qgs_graph.addEdge(id_1, nearest_point_id,
                                           [QgsNetworkDistanceStrategy().cost(line.length(), feat)])
 
@@ -347,27 +171,13 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
             point2 = pares[1]
             line = QgsGeometry.fromPolylineXY([qgs_graph.vertex(pares[1]).point(), qgs_graph.vertex(pares[0]).point()])
             list_of_lines.append(line)
-            id_number += 1
-            # Create QgsFeature and add to feats_line
-            feat = QgsFeature(vlayer2.fields())
-            feat.setId(id_number)
-            feat.setGeometry(line)
-            feats_line.append(feat)
             qgs_graph.addEdge(point1, point2, [QgsNetworkDistanceStrategy().cost(line.length(), feat)])
 
-        vlayer2.dataProvider().addFeatures(feats_line)
-        vlayer2.triggerRepaint()
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_line.shp",
+                                                    list_of_lines)
         return qgs_graph
 
-    def check(self):
-        for row in self.grid.cells:
-            for cell in row:
-                a = cell.geometry
-                b = a.asGeometryCollection()
-                print(b)
-
     def run(self):
-        self.debug_info()
         tick = time.perf_counter()
         graph = self.__create_graph()
         searcher = QgsGraphSearcher(graph, self.starting_point, self.target_point, 0)
@@ -379,26 +189,76 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         print("Length of min path is: ", searcher.min_length_to_vertex())
 
         # visualize the shortest tree graph
-        vlayer3 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_tree.shp")
-        vlayer3.dataProvider().truncate()
-        feats = searcher.get_shortest_tree_features_list(vlayer3)
-        vlayer3.dataProvider().addFeatures(feats)
-        vlayer3.triggerRepaint()
+        feats = searcher.get_shortest_tree_features_list()
+        Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_tree.shp", feats)
 
         # search min path and visualize
-        vlayer4 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp")
-        vlayer4.dataProvider().truncate()
-        feats = searcher.get_features_from_min_path(vlayer4)
-        vlayer4.dataProvider().addFeatures(feats)
-        vlayer4.triggerRepaint()
-        acc = time.perf_counter() - tick
-        print(acc)
+        feats = searcher.get_features_from_min_path()
+        Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", feats)
 
-    def debug_info(self):
-        print("starting_point: ", self.starting_point)
-        print("target_point: ", self.target_point)
-        print("area: ", (self.right_x - self.left_x) * (self.top_y - self.bottom_y))
-        print(self.left_x, self.right_x, self.bottom_y, self.top_y)
+        acc = time.perf_counter() - tick
+        print("time: ", acc)
+
+        min_path_geometry = [i.geometry() for i in feats]
+
+        points = [i.asPolyline()[0] for i in min_path_geometry]
+        print(points)
+        points_extended = []
+        for point in points:
+            point = QgsGeometry.fromPointXY(point)
+            cell = self.grid.difine_point(point)
+            point_extand = GeometryPointExpand(point, cell.n_row, cell.n_column)
+            points_extended.append(point_extand)
+
+        print(points_extended)
+        list_min_path_indexes = [0]
+        update_index = 1
+        i = 0
+        while i < len(points_extended):
+            for k in range(i + 1, len(points_extended)):
+                line = QgsGeometry.fromPolylineXY([points_extended[i].point.asPoint(),
+                                                   points_extended[k].point.asPoint()])
+
+                geometry = self.grid.get_multipolygon_by_points(points_extended[i],
+                                                                points_extended[k])
+                if geometry.distance(line):
+                    update_index = k
+                else:
+                    list_min_path_indexes.append(update_index)
+                    i = k
+                    break
+            i += 1
+        if len(points_extended) - 1 != list_min_path_indexes[-1]:
+            list_min_path_indexes.append(len(points_extended) - 1)
+
+        a = 0
+        while a + 1 < len(list_min_path_indexes):
+            if list_min_path_indexes[a] == list_min_path_indexes[a + 1]:
+                list_min_path_indexes.remove(list_min_path_indexes[a])
+                a -= 1
+            a += 1
+
+        shortes_min_path_points = [points_extended[i] for i in list_min_path_indexes]
+        shortest_path_lines = []
+        for i in range(len(shortes_min_path_points) - 1):
+            line = QgsGeometry.fromPolylineXY([shortes_min_path_points[i].point.asPoint(),
+                                               shortes_min_path_points[i + 1].point.asPoint()])
+            shortest_path_lines.append(line)
+
+        layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp")
+        layer.dataProvider().truncate()
+        feats = []
+        for line in shortest_path_lines:
+            feat = QgsFeature(layer.fields())
+            feat.setGeometry(line)
+            feats.append(feat)
+
+        layer.dataProvider().addFeatures(feats)
+        layer.triggerRepaint()
+
+        print(shortest_path_lines)
+        print("len: ", len(points_extended))
+        print(list_min_path_indexes)
 
 
 if __name__ == '__main__':
@@ -408,10 +268,9 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7890839, 47.2690766))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.777808, 47.277062))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7830177, 47.2731885))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7797230, 47.2740633))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
     obstacles = QgsVectorLayer(path)
     check = RandomizedRoadmapGridMethod(point1, point2, obstacles, proj)
-    check._get_hall()
-
+    check.run()

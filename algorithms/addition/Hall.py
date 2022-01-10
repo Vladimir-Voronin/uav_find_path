@@ -17,6 +17,12 @@ class Hall:
         self.target_extended_point_x = None
         self.target_extended_point_y = None
 
+        # Крайние точки коридора
+        self.point1 = None
+        self.point2 = None
+        self.point3 = None
+        self.point4 = None
+
         # Приращения
         self.Xp = None
         self.Yp = None
@@ -79,11 +85,11 @@ class Hall:
         hall[3][0] = x4 + self.Xp
         hall[3][1] = y4 - self.Yp
 
-        point1 = QgsPointXY(hall[0][0], hall[0][1])
-        point2 = QgsPointXY(hall[1][0], hall[1][1])
-        point3 = QgsPointXY(hall[2][0], hall[2][1])
-        point4 = QgsPointXY(hall[3][0], hall[3][1])
-        self.hall_polygon = QgsGeometry.fromPolygonXY([[point1, point2, point3, point4]])
+        self.point1 = QgsPointXY(hall[0][0], hall[0][1])
+        self.point2 = QgsPointXY(hall[1][0], hall[1][1])
+        self.point3 = QgsPointXY(hall[2][0], hall[2][1])
+        self.point4 = QgsPointXY(hall[3][0], hall[3][1])
+        self.hall_polygon = QgsGeometry.fromPolygonXY([[self.point1, self.point2, self.point3, self.point4]])
 
         return self.hall_polygon
 
@@ -142,14 +148,58 @@ class Hall:
 
         multi_polygon_geometry.deletePart(0)
 
+        # Vizualize DELETE PRE RELEASE!
+        # vlayer1 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_polygon.shp")
+        # vlayer1.dataProvider().truncate()
+        #
+        # feats = []
+        # id_number = -1
+        # feat = QgsFeature(vlayer1.fields())
+        # feat.setGeometry(multi_polygon_geometry)
+        # feats.append(feat)
+        # vlayer1.dataProvider().addFeatures(feats)
+
+        return multi_polygon_geometry
+
+    def create_list_of_polygons(self, obstacles, project):
+        features = obstacles.getFeatures()
+
+        list_of_geometry = []
+        list_of_polygons = []
+        # Data for transform to EPSG: 3395
+        transformcontext = project.transformContext()
+        source_projection = obstacles.crs()
+        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
+        xform = QgsCoordinateTransform(source_projection, general_projection, transformcontext)
+        for feature in features:
+            geom = feature.geometry()
+
+            # Transform to EPSG 3395
+            check = geom.asGeometryCollection()[0].asPolygon()
+            list_of_points_to_polygon = []
+            for point in check[0]:
+                point = xform.transform(point.x(), point.y())
+                list_of_points_to_polygon.append(point)
+
+            create_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
+            list_of_geometry.append(create_polygon)
+        polygon = self.hall_polygon
+
+        list_of_geometry_handled = []
+        for geometry in list_of_geometry:
+            if polygon.distance(geometry) == 0.0:
+                list_of_geometry_handled.append(geometry)
+
+        # Vizualize DELETE PRE RELEASE!
         vlayer1 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_polygon.shp")
         vlayer1.dataProvider().truncate()
 
         feats = []
         id_number = -1
-        feat = QgsFeature(vlayer1.fields())
-        feat.setGeometry(multi_polygon_geometry)
-        feats.append(feat)
+        for pol in list_of_geometry_handled:
+            feat = QgsFeature(vlayer1.fields())
+            feat.setGeometry(pol)
+            feats.append(feat)
         vlayer1.dataProvider().addFeatures(feats)
 
-        return multi_polygon_geometry
+        return list_of_geometry_handled

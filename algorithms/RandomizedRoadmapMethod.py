@@ -55,124 +55,15 @@ class RandomizedRoadmapMethod(SearchMethodAbstract):
 
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
 
-        # borders coordinates
-        self.left_x, self.right_x, self.bottom_y, self.top_y = self.__get_borders()
-
-        # get mulmultipolygon layer
-        # self.multi_polygon_geometry = RandomizedRoadmapMethod.__create_multipolygon_geometry(obstacles, self.left_x,
-        #                                                                                      self.right_x,
-        #                                                                                      self.bottom_y, self.top_y,
-        #                                                                                      project)
-
         self.multi_polygon_geometry = self.hall.create_multipolygon_geometry_by_hall(obstacles, project)
 
         # constants
         self.const_square_meters = 400
         self.const_sight_of_points = 12
 
-    # private method, which create the multipolygon layer from all polygons
-    @staticmethod
-    def __create_multipolygon_geometry(obstacles, left_x, right_x, bottom_y, top_y, project):
-        features = obstacles.getFeatures()
-
-        list_of_geometry = []
-        # Data for transform to EPSG: 3395
-        transformcontext = project.transformContext()
-        source_projection = obstacles.crs()
-        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
-        xform = QgsCoordinateTransform(source_projection, general_projection, transformcontext)
-        for feature in features:
-            geom = feature.geometry()
-
-            # Transform to EPSG 3395
-            check = geom.asGeometryCollection()[0].asPolygon()
-            list_of_points_to_polygon = []
-            for point in check[0]:
-                point = xform.transform(point.x(), point.y())
-                list_of_points_to_polygon.append(point)
-
-            create_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
-            list_of_geometry.append(create_polygon)
-        polygon = QgsGeometry.fromPolygonXY([[QgsPointXY(left_x, bottom_y),
-                                              QgsPointXY(right_x, bottom_y),
-                                              QgsPointXY(right_x, top_y),
-                                              QgsPointXY(left_x, top_y)]])
-
-        list_of_geometry_handled = []
-        for geometry in list_of_geometry:
-            if polygon.distance(geometry) == 0.0:
-                list_of_geometry_handled.append(geometry)
-        print("objects_number: ", len(list_of_geometry_handled))
-        # because we cant add Part of geometry to empty OgsGeometry instance
-        multi_polygon_geometry = QgsGeometry.fromPolygonXY([[QgsPointXY(1, 1), QgsPointXY(2, 2), QgsPointXY(2, 1)]])
-
-        for polygon in list_of_geometry_handled:
-            multi_polygon_geometry.addPartGeometry(polygon)
-
-        multi_polygon_geometry.deletePart(0)
-        return multi_polygon_geometry
-
-    # private method, which create the borders of rectangle
-    def __get_borders(self):
-        left_x = self.starting_point.x() if self.starting_point.x() < self.target_point.x() else self.target_point.x()
-        right_x = self.starting_point.x() if self.starting_point.x() > self.target_point.x() else self.target_point.x()
-        bottom_y = self.starting_point.y() if self.starting_point.y() < self.target_point.y() else self.target_point.y()
-        top_y = self.starting_point.y() if self.starting_point.y() > self.target_point.y() else self.target_point.y()
-
-        expand_constant_x = (right_x - left_x) * 0.08
-        expand_constant_y = (top_y - bottom_y) * 0.08
-
-        left_x = left_x - expand_constant_x
-        right_x = right_x + expand_constant_x
-        bottom_y = bottom_y - expand_constant_y
-        top_y = top_y + expand_constant_y
-
-        return left_x, right_x, bottom_y, top_y
-
-    # private method, which returns one checked point
-    def __add_point(self):
-        x = random.uniform(self.left_x, self.right_x)
-        y = random.uniform(self.bottom_y, self.top_y)
-        point = QgsGeometry.fromPointXY(QgsPointXY(x, y))
-        if self.multi_polygon_geometry.distance(point) > 0.0:
-            return point
-        else:
-            return self.__add_point()
-
-    # method for starting and target point, return list of points around this points
-    def __add_points_around(self, source_point, distance):
-        # source coordinates
-        x_source = source_point.x()
-        y_source = source_point.y()
-        # angle
-        f = 0
-        shift = math.pi / 6
-        points_around = []
-        while f < 2 * math.pi:
-            x = x_source + distance * math.cos(f)
-            y = y_source + distance * math.sin(f)
-            point = QgsGeometry.fromPointXY(QgsPointXY(x, y))
-            if self.multi_polygon_geometry.distance(point) > 0.0:
-                points_around.append(point)
-            f += shift
-        return points_around
-
-    def __get_list_of_points(self, amount_of_points):
-        list_of_points = []
-
-        for i in range(amount_of_points):
-            point = self.__add_point()
-            list_of_points.append(point)
-
-        return list_of_points
-
     def __create_graph(self):
         # 1 point for "self.const_square_meters" square meters
         amount_of_points = math.ceil(self.hall.square / self.const_square_meters)
-
-
-        # __get_list_of_points or __get_list_of_points_multiprocessing
-        # list_of_points = self.__get_list_of_points(amount_of_points)
 
         list_of_points = RandomizeFunctions.get_random_points(self.hall, amount_of_points, self.multi_polygon_geometry)
 
@@ -299,8 +190,6 @@ class RandomizedRoadmapMethod(SearchMethodAbstract):
     def debug_info(self):
         print("starting_point: ", self.starting_point)
         print("target_point: ", self.target_point)
-        print("area: ", (self.right_x - self.left_x) * (self.top_y - self.bottom_y))
-        print(self.left_x, self.right_x, self.bottom_y, self.top_y)
 
 
 if __name__ == '__main__':
