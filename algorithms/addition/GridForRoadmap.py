@@ -44,6 +44,19 @@ class GridForRoadmap:
 
         polygon = QgsGeometry(list_of_cells[0].geometry)
         for i in range(1, len(list_of_cells)):
+            if list_of_cells[i].geometry is not None:
+                polygon.addPartGeometry(list_of_cells[i].geometry)
+        return polygon
+
+    def get_multipolygon_by_line(self, line):
+        list_of_cells = []
+        for row in self.cells:
+            for cell in row:
+                if cell.borders.distance(line) == 0:
+                    list_of_cells.append(cell)
+
+        polygon = QgsGeometry(list_of_cells[0].geometry)
+        for i in range(1, len(list_of_cells)):
             polygon.addPartGeometry(list_of_cells[i].geometry)
         return polygon
 

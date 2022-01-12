@@ -12,7 +12,7 @@ class CellOfTheGrid:
         self.n_row = None
         self.n_column = None
         self.geometry = None
-        self.number_of_polyg = None
+        self.number_of_polyg = 0
 
     def set_geometry(self, polygons):
         list_of_geom = []

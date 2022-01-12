@@ -1,178 +1,32 @@
+import random
+
 from qgis.core import *
-from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy, QgsGraphAnalyzer
-# uav_find_path.algorithms.abstract
+from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
-from algorithms.addition.GridForRoadmap import GridForRoadmap
-from algorithms.addition.CellOfTheGrid import CellOfTheGrid
 from algorithms.addition.GeometryPointExpand import GeometryPointExpand
 from algorithms.addition.RandomizeFunctions import RandomizeFunctions
-from algorithms.addition.Hall import Hall
 from algorithms.addition.Decorators import measuretime
-import time
+from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 import math
 
 
-class RandomizedRoadmapGridMethod(SearchMethodAbstract):
+class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
     def __init__(self, starting_point, target_point, obstacles, project):
-        # constants
-        self.const_square_meters = 400
-        self.const_sight_of_points = 12
-        self.step = 100  # step of the grid
-        self.hall_width = 200
-
-        # others
-        self.current_id = 0
-        self.obstacles = obstacles  # type: QgsVectorLayer
-        self.project = project
-
-        # transform to EPSG 3395
-        # need to change "project" to "QgsProject.instance" when import to module
-        transformcontext = project.transformContext()
-        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
-        xform = QgsCoordinateTransform(self.obstacles.crs(), general_projection, transformcontext)
-
-        # type: QgsPointXY
-        self.starting_point = xform.transform(starting_point.asPoint())
-        self.target_point = xform.transform(target_point.asPoint())
-
-        # type: QgsGeometry
-        self.starting_point_geometry = QgsGeometry.fromPointXY(QgsPointXY(self.starting_point.x(),
-                                                                          self.starting_point.y()))
-        self.target_point_geometry = QgsGeometry.fromPointXY(QgsPointXY(self.target_point.x(),
-                                                                        self.target_point.y()))
-
-        self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
-
-        # borders coordinates
-        self.left_x, self.right_x, self.bottom_y, self.top_y = None, None, None, None
-
-        self.list_of_polygons = self.hall.create_list_of_polygons(obstacles, project)
-
-        self.grid = self.__create_grid()
+        super().__init__(starting_point, target_point, obstacles, project)
 
     @measuretime
     def __create_grid(self):
-        self.left_x = min(self.hall.point1.x(), self.hall.point2.x(), self.hall.point3.x(), self.hall.point4.x())
-        self.right_x = max(self.hall.point1.x(), self.hall.point2.x(), self.hall.point3.x(), self.hall.point4.x())
-        self.bottom_y = min(self.hall.point1.y(), self.hall.point2.y(), self.hall.point3.y(), self.hall.point4.y())
-        self.top_y = max(self.hall.point1.y(), self.hall.point2.y(), self.hall.point3.y(), self.hall.point4.y())
-
-        number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step)
-        number_of_columns = math.ceil((self.right_x - self.left_x) / self.step)
-        grid = GridForRoadmap(number_of_rows, number_of_columns)
-        print("rows: ", number_of_columns)
-        print("columns: ", number_of_columns)
-        lx = self.left_x
-        ly = self.top_y
-        a = 0
-        coor_row = 0
-        coor_column = 0
-        for row in grid.cells:
-            ry = ly - self.step
-            if ry < self.bottom_y:
-                ry = self.bottom_y
-            rx = lx + self.step
-            if rx > self.right_x:
-                rx = self.right_x
-            for _ in row:
-                cell = CellOfTheGrid(lx, ly, rx, ry)
-                cell.set_geometry(self.list_of_polygons)
-                grid.add_cell_by_coordinates(cell, coor_row, coor_column)
-                lx += self.step
-                rx += self.step
-                coor_column += 1
-                if rx > self.right_x:
-                    rx = self.right_x
-            ly -= self.step
-            lx = self.left_x
-            coor_column = 0
-            coor_row += 1
-        return grid
+        super()._create_grid()
 
     @measuretime
     def __get_shorter_path(self, feats, increase_points=0):
-        # get shorter path
-        min_path_geometry = [i.geometry() for i in feats]
-        points = [i.asPolyline()[0] for i in min_path_geometry]
-        # adding last point
-        points.append(min_path_geometry[-1].asPolyline()[1])
-        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_point.shp",
-                                           points)
-        # increase points in path to get shorter path
-        i = 0
-        while i < len(points) - 1:
-            for k in range(increase_points):
-                coef_multi = (k + 1) / (increase_points + 1)
-                x = points[i].x() + (points[i + 1 + k].x() - points[i].x()) * coef_multi
-                y = points[i].y() + (points[i + 1 + k].y() - points[i].y()) * coef_multi
-                point = QgsPointXY(x, y)
-                points.insert(i + k + 1, point)
-            i += increase_points + 1
-
-
-        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp",
-                                           points)
-        points_extended = []
-        for point in points:
-            point = QgsGeometry.fromPointXY(point)
-            cell = self.grid.difine_point(point)
-            point_extand = GeometryPointExpand(point, cell.n_row, cell.n_column)
-            points_extended.append(point_extand)
-
-        depth = 30
-
-        list_min_path_indexes = [0]
-        update_index = 1
-        i = 0
-        while i < len(points_extended):
-            for k in range(i + 1, min(i + 1 + depth, len(points_extended))):
-                line = QgsGeometry.fromPolylineXY([points_extended[i].point.asPoint(),
-                                                   points_extended[k].point.asPoint()])
-
-                geometry_obstacles = self.grid.get_multipolygon_by_points(points_extended[i],
-                                                                          points_extended[k])
-
-                if geometry_obstacles.distance(line):
-                    update_index = k
-                else:
-                    list_min_path_indexes.append(update_index)
-                    i = update_index
-                    i -= 1
-                    break
-            i += 1
-        print("first: ", list_min_path_indexes)
-        if len(points_extended) - 1 != list_min_path_indexes[-1]:
-            list_min_path_indexes.append(len(points_extended) - 1)
-
-        print("second: ", list_min_path_indexes)
-
-        a = 0
-        while a + 1 < len(list_min_path_indexes):
-            if list_min_path_indexes[a] == list_min_path_indexes[a + 1]:
-                list_min_path_indexes.remove(list_min_path_indexes[a])
-                a -= 1
-            a += 1
-
-        shortes_min_path_points = [points_extended[i] for i in list_min_path_indexes]
-        shortest_path_lines = []
-        for i in range(len(shortes_min_path_points) - 1):
-            line = QgsGeometry.fromPolylineXY([shortes_min_path_points[i].point.asPoint(),
-                                               shortes_min_path_points[i + 1].point.asPoint()])
-            shortest_path_lines.append(line)
-
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
-                                                    shortest_path_lines)
-
-        return shortest_path_lines
+        super()._get_shorter_path(feats, increase_points)
 
     @measuretime
     def __set_geometry_to_grid(self):
-        # assign geometry to the cell
-        for row in self.grid.cells:
-            for cell in row:
-                cell.set_geometry(self.list_of_polygons)
+        super()._set_geometry_to_grid()
 
     @measuretime
     def __get_points(self):
@@ -219,6 +73,7 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
         list_to_duplicate_backwards = []
         # list_of_lines contain type QgsGeometry
         list_of_lines = []
+
         for id_1, point in enumerate(feats):
             nearest = index.nearestNeighbor(point.geometry().asPoint(), self.const_sight_of_points)
             nearest.pop(0)
@@ -233,6 +88,7 @@ class RandomizedRoadmapGridMethod(SearchMethodAbstract):
 
                     geometry = self.grid.get_multipolygon_by_points(list_of_points[id_1],
                                                                     list_of_points[nearest_point_id])
+
                     if geometry.distance(line):
                         # add to list of duplicates backwards, ADDING IS BACKWARD
                         list_to_duplicate_backwards.append([nearest_point_id, id_1])
@@ -288,8 +144,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7830177, 47.2731885))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7627865,47.2876834))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7899186,47.2674382))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7825901,47.2745549))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
     obstacles = QgsVectorLayer(path)
     check = RandomizedRoadmapGridMethod(point1, point2, obstacles, proj)
