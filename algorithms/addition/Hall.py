@@ -23,6 +23,8 @@ class Hall:
         self.point3 = None
         self.point4 = None
 
+        self.cos = None
+        self.sin = None
         # Приращения
         self.Xp = None
         self.Yp = None
@@ -63,13 +65,10 @@ class Hall:
         # Высчитываем коэф уменьшения
         coef_decr = ev_len / hall_width
 
-        ev_decr = [0, 0]
-        ev_decr[0], ev_decr[1] = ev[0] / coef_decr, ev[1] / coef_decr
-
-        cos_ev = ev[0] / ev_len
-        sin_ev = ev[1] / ev_len
-        self.Xp = hall_width * sin_ev
-        self.Yp = hall_width * cos_ev
+        self.cos = ev[0] / ev_len
+        self.sin = ev[1] / ev_len
+        self.Xp = hall_width * self.sin
+        self.Yp = hall_width * self.cos
         self.square = (ev_len * self.hall_width * 2)
 
         # Точки расположены в порядке создания прямоугольника, ЭТО НЕ ТОЧКИ ЭТО ПРИРАЩЕНИЯ
@@ -147,17 +146,6 @@ class Hall:
             multi_polygon_geometry.addPartGeometry(polygon)
 
         multi_polygon_geometry.deletePart(0)
-
-        # Vizualize DELETE PRE RELEASE!
-        # vlayer1 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_polygon.shp")
-        # vlayer1.dataProvider().truncate()
-        #
-        # feats = []
-        # id_number = -1
-        # feat = QgsFeature(vlayer1.fields())
-        # feat.setGeometry(multi_polygon_geometry)
-        # feats.append(feat)
-        # vlayer1.dataProvider().addFeatures(feats)
 
         return multi_polygon_geometry
 

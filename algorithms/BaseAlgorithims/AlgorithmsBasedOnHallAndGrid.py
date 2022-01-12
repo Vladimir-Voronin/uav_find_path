@@ -14,7 +14,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         # constants
         self.const_square_meters = 400
         self.const_sight_of_points = 12
-        self.step = 100  # step of the grid
+        self.step_of_the_grid = 100  # step of the grid
 
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
 
@@ -28,8 +28,8 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         self.bottom_y = min(self.hall.point1.y(), self.hall.point2.y(), self.hall.point3.y(), self.hall.point4.y())
         self.top_y = max(self.hall.point1.y(), self.hall.point2.y(), self.hall.point3.y(), self.hall.point4.y())
 
-        number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step)
-        number_of_columns = math.ceil((self.right_x - self.left_x) / self.step)
+        number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step_of_the_grid)
+        number_of_columns = math.ceil((self.right_x - self.left_x) / self.step_of_the_grid)
         grid = GridForRoadmap(number_of_rows, number_of_columns)
         print("rows: ", number_of_columns)
         print("columns: ", number_of_columns)
@@ -39,21 +39,21 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         coor_row = 0
         coor_column = 0
         for row in grid.cells:
-            ry = ly - self.step
+            ry = ly - self.step_of_the_grid
             if ry < self.bottom_y:
                 ry = self.bottom_y
-            rx = lx + self.step
+            rx = lx + self.step_of_the_grid
             if rx > self.right_x:
                 rx = self.right_x
             for _ in row:
                 cell = CellOfTheGrid(lx, ly, rx, ry)
                 grid.add_cell_by_coordinates(cell, coor_row, coor_column)
-                lx += self.step
-                rx += self.step
+                lx += self.step_of_the_grid
+                rx += self.step_of_the_grid
                 coor_column += 1
                 if rx > self.right_x:
                     rx = self.right_x
-            ly -= self.step
+            ly -= self.step_of_the_grid
             lx = self.left_x
             coor_column = 0
             coor_row += 1
