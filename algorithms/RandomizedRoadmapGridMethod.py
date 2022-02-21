@@ -1,5 +1,6 @@
 import random
 
+from memory_profiler import memory_usage, profile
 from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from algorithms.abstract.SearchMethod import SearchMethodAbstract

@@ -1,4 +1,5 @@
 from qgis.core import *
+from ModuleInstruments.DebugLog import DebugInfo
 
 
 class FindPathData:
