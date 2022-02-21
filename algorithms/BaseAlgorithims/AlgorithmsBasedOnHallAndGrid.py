@@ -88,12 +88,12 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
             point_extand = GeometryPointExpand(point, cell.n_row, cell.n_column)
             points_extended.append(point_extand)
 
-        depth = 30
-
         list_min_path_indexes = [0]
         update_index = 1
         i = 0
         self.grid.vizualize(self.project)
+
+        depth = 30
         while i < len(points_extended):
             for k in range(i + 1, min(i + 1 + depth, len(points_extended))):
                 line = QgsGeometry.fromPolylineXY([points_extended[i].point.asPoint(),
@@ -101,8 +101,6 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
 
                 geometry_obstacles = self.grid.get_multipolygon_by_points(points_extended[i],
                                                                           points_extended[k])
-
-                # geometry_obstacles = self.grid.get_multipolygon_by_line(line)
 
                 if geometry_obstacles.distance(line) > 0:
                     update_index = k
@@ -112,6 +110,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
                     i -= 1
                     break
             i += 1
+
         if len(points_extended) - 1 != list_min_path_indexes[-1]:
             list_min_path_indexes.append(len(points_extended) - 1)
 

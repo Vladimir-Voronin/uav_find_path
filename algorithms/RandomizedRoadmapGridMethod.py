@@ -144,8 +144,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7899186,47.2674382))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7825901,47.2745549))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7897843,47.2679031))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7848538,47.2733796))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
     obstacles = QgsVectorLayer(path)
     check = RandomizedRoadmapGridMethod(point1, point2, obstacles, proj)

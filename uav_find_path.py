@@ -196,18 +196,19 @@ class UAVFindPath:
             self.iface.removeToolBarIcon(action)
 
     def set_obstacle_layer(self, layers):
-        selectedLayerIndex = self.dlg.comboBox.currentIndex() - 1
-        self.obstacle_layer = layers[selectedLayerIndex].layer()
+        selected_layer_index = self.dlg.comboBox_select_obstacles.currentIndex() - 1
+        if selected_layer_index >= 0:
+            self.obstacle_layer = layers[selected_layer_index].layer()
 
     def point_button_clicked(self, number_of_points):
         dial = QDialog(None)
         dial.show()
         if number_of_points == 1:
-            text_x = self.dlg.textEdit
-            text_y = self.dlg.textEdit_2
+            text_x = self.dlg.textEdit_start_point_x
+            text_y = self.dlg.textEdit_start_point_y
         elif number_of_points == 2:
-            text_x = self.dlg.textEdit_3
-            text_y = self.dlg.textEdit_4
+            text_x = self.dlg.textEdit_target_point_x
+            text_y = self.dlg.textEdit_target_point_y
         canvas = QgsMapCanvas()
         canvas.show()
         layer = self.obstacle_layer
@@ -240,7 +241,7 @@ class UAVFindPath:
 
         # Create the dialog with elements (after translation) and keep reference
         # Only create GUI ONCE in callback, so that it will only load when the plugin is started
-        if self.first_start == True:
+        if self.first_start:
             self.first_start = False
             self.dlg = UAVFindPathDialog()
 
@@ -248,18 +249,19 @@ class UAVFindPath:
         algorithm_dict = {'RandomizedRoadmapMethod': RandomizedRoadmapMethod.RandomizedRoadmapMethod}
 
         # button logic
-        self.dlg.pushButton.clicked.connect(lambda: self.point_button_clicked(1))
-        self.dlg.pushButton_2.clicked.connect(lambda: self.point_button_clicked(2))
+        self.dlg.pushButton_start_point.clicked.connect(lambda: self.point_button_clicked(1))
+        self.dlg.pushButton_target_point.clicked.connect(lambda: self.point_button_clicked(2))
         # add layers to "select layer"
-        layers = QgsProject.instance().layerTreeRoot().children()
-        self.dlg.comboBox.clear()
-        self.dlg.comboBox.addItem("")
-        self.dlg.comboBox.addItems([layer.name() for layer in layers])
-        self.dlg.comboBox.currentIndexChanged.connect(lambda: self.set_obstacle_layer(layers))
+        project = QgsProject.instance()
+        layers = project.layerTreeRoot().children()
+        self.dlg.comboBox_select_obstacles.clear()
+        self.dlg.comboBox_select_obstacles.addItem("")
+        self.dlg.comboBox_select_obstacles.addItems([layer.name() for layer in layers])
+        self.dlg.comboBox_select_obstacles.currentIndexChanged.connect(lambda: self.set_obstacle_layer(layers))
 
         # add search methods to "select search methods
-        self.dlg.comboBox_2.clear()
-        self.dlg.comboBox_2.addItems(algorithm_dict.keys())
+        self.dlg.comboBox_select_search_method.clear()
+        self.dlg.comboBox_select_search_method.addItems(algorithm_dict.keys())
         # show the dialog
         self.dlg.show()
 

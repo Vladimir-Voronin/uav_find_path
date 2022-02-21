@@ -6,66 +6,34 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>415</width>
-    <height>468</height>
+    <width>398</width>
+    <height>546</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>UAVFindPath</string>
   </property>
-  <widget class="QDialogButtonBox" name="button_box">
-   <property name="geometry">
-    <rect>
-     <x>60</x>
-     <y>410</y>
-     <width>341</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
-  <widget class="QLabel" name="label_5">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>372</y>
-     <width>51</width>
-     <height>16</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Save to:</string>
-   </property>
-   <property name="alignment">
-    <set>Qt::AlignCenter</set>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>280</y>
+     <x>10</x>
+     <y>240</y>
      <width>81</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Save layer to:</string>
+    <string>Save folder:</string>
    </property>
    <property name="alignment">
     <set>Qt::AlignCenter</set>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox_2">
+  <widget class="QComboBox" name="comboBox_select_search_method">
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>203</y>
+     <y>183</y>
      <width>171</width>
      <height>22</height>
     </rect>
@@ -75,7 +43,7 @@
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>80</y>
+     <y>60</y>
      <width>21</width>
      <height>16</height>
     </rect>
@@ -91,7 +59,7 @@
    <property name="geometry">
     <rect>
      <x>160</x>
-     <y>80</y>
+     <y>60</y>
      <width>21</width>
      <height>16</height>
     </rect>
@@ -107,7 +75,7 @@
    <property name="geometry">
     <rect>
      <x>11</x>
-     <y>200</y>
+     <y>180</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -131,27 +99,11 @@
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QCheckBox" name="checkBox">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>340</y>
-     <width>161</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Create txt file</string>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEdit_3">
+  <widget class="QTextEdit" name="textEdit_target_point_x">
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>140</y>
+     <y>120</y>
      <width>104</width>
      <height>20</height>
     </rect>
@@ -170,36 +122,13 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
-  <widget class="QTextEdit" name="textEdit_4">
+  <widget class="QTextEdit" name="textEdit_target_point_y">
    <property name="geometry">
     <rect>
      <x>250</x>
-     <y>140</y>
+     <y>120</y>
      <width>104</width>
      <height>20</height>
-    </rect>
-   </property>
-   <property name="verticalScrollBarPolicy">
-    <enum>Qt::ScrollBarAlwaysOff</enum>
-   </property>
-   <property name="horizontalScrollBarPolicy">
-    <enum>Qt::ScrollBarAlwaysOff</enum>
-   </property>
-   <property name="html">
-    <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-   </property>
-  </widget>
-  <widget class="QTextEdit" name="textEdit_6">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>370</y>
-     <width>281</width>
-     <height>21</height>
     </rect>
    </property>
    <property name="verticalScrollBarPolicy">
@@ -220,7 +149,7 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>11</x>
-     <y>47</y>
+     <y>27</y>
      <width>81</width>
      <height>31</height>
     </rect>
@@ -244,11 +173,11 @@ p, li { white-space: pre-wrap; }
     <bool>true</bool>
    </property>
   </widget>
-  <widget class="QTextEdit" name="textEdit">
+  <widget class="QTextEdit" name="textEdit_start_point_x">
    <property name="geometry">
     <rect>
      <x>120</x>
-     <y>110</y>
+     <y>90</y>
      <width>104</width>
      <height>20</height>
     </rect>
@@ -267,11 +196,11 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
-  <widget class="QTextEdit" name="textEdit_5">
+  <widget class="QTextEdit" name="textEdit_save_folder">
    <property name="geometry">
     <rect>
-     <x>100</x>
-     <y>280</y>
+     <x>90</x>
+     <y>240</y>
      <width>251</width>
      <height>21</height>
     </rect>
@@ -290,24 +219,24 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton">
+  <widget class="QPushButton" name="pushButton_start_point">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>110</y>
+     <y>90</y>
      <width>71</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>point 1</string>
+    <string>start point</string>
    </property>
   </widget>
-  <widget class="QTextEdit" name="textEdit_2">
+  <widget class="QTextEdit" name="textEdit_start_point_y">
    <property name="geometry">
     <rect>
      <x>250</x>
-     <y>110</y>
+     <y>90</y>
      <width>104</width>
      <height>20</height>
     </rect>
@@ -326,89 +255,92 @@ p, li { white-space: pre-wrap; }
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </widget>
-  <widget class="QComboBox" name="comboBox">
+  <widget class="QComboBox" name="comboBox_select_obstacles">
    <property name="geometry">
     <rect>
      <x>100</x>
-     <y>50</y>
+     <y>30</y>
      <width>171</width>
      <height>22</height>
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_2">
+  <widget class="QPushButton" name="pushButton_target_point">
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>140</y>
+     <y>120</y>
      <width>71</width>
      <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>point 2</string>
+    <string>target point</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="pushButton_save_folder">
    <property name="geometry">
     <rect>
-     <x>360</x>
+     <x>350</x>
+     <y>240</y>
+     <width>31</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>...</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_create_debug_layers">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
      <y>280</y>
-     <width>31</width>
-     <height>23</height>
+     <width>171</width>
+     <height>17</height>
     </rect>
    </property>
    <property name="text">
-    <string>...</string>
+    <string>Create also debug layers</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_4">
+  <widget class="QTextEdit" name="textEdit_debug_info">
    <property name="geometry">
     <rect>
-     <x>360</x>
-     <y>370</y>
-     <width>31</width>
-     <height>23</height>
+     <x>20</x>
+     <y>310</y>
+     <width>361</width>
+     <height>151</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_run">
+   <property name="geometry">
+    <rect>
+     <x>290</x>
+     <y>490</y>
+     <width>91</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
-    <string>...</string>
+    <string>Run</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_show_debug_info">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>470</y>
+     <width>101</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Show debug info</string>
    </property>
   </widget>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>button_box</sender>
-   <signal>accepted()</signal>
-   <receiver>UAVFindPathDialogBase</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>button_box</sender>
-   <signal>rejected()</signal>
-   <receiver>UAVFindPathDialogBase</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

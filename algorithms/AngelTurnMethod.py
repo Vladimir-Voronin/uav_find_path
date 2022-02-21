@@ -1,5 +1,3 @@
-import math
-
 from qgis._analysis import QgsGraph, QgsNetworkDistanceStrategy
 from qgis.core import *
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
@@ -14,8 +12,8 @@ class AngleTurnMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
     def __init__(self, starting_point, target_point, obstacles, project):
         super().__init__(starting_point, target_point, obstacles, project)
         self.path_list = []
-        self.length_of_step = 20
-        self.angle_shift = 5
+        self.length_of_step = 50
+        self.angle_shift = 15
         self.multi_polygon_geometry = self.__create_multipolygon_of_layer()
 
     def __create_multipolygon_of_layer(self):
@@ -93,6 +91,70 @@ class AngleTurnMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
             return True
 
         return False
+
+    def __get_shorter_path(self, feats, increase_points=0):
+        # get shorter path
+        min_path_geometry = [i.geometry() for i in feats]
+        points = [i.asPolyline()[0] for i in min_path_geometry]
+        # adding last point
+        points.append(min_path_geometry[-1].asPolyline()[1])
+        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_point.shp",
+                                           points)
+        # increase points in path to get shorter path
+        i = 0
+        while i < len(points) - 1:
+            for k in range(increase_points):
+                coef_multi = (k + 1) / (increase_points + 1)
+                x = points[i].x() + (points[i + 1 + k].x() - points[i].x()) * coef_multi
+                y = points[i].y() + (points[i + 1 + k].y() - points[i].y()) * coef_multi
+                point = QgsPointXY(x, y)
+                points.insert(i + k + 1, point)
+            i += increase_points + 1
+
+        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp",
+                                           points)
+
+        list_min_path_indexes = [0]
+        update_index = 1
+        i = 0
+        self.grid.vizualize(self.project)
+
+        depth = 10
+        while i < len(points):
+            for k in range(i + 1, min(i + 1 + depth, len(points))):
+                line = QgsGeometry.fromPolylineXY([points[i],
+                                                   points[k]])
+
+                if self.multi_polygon_geometry.distance(line) > 0:
+                    update_index = k
+                else:
+                    list_min_path_indexes.append(update_index)
+                    i = update_index
+                    i -= 1
+                    break
+            i += 1
+
+        if len(points) - 1 != list_min_path_indexes[-1]:
+            list_min_path_indexes.append(len(points) - 1)
+
+        a = 0
+        while a + 1 < len(list_min_path_indexes):
+            if list_min_path_indexes[a] == list_min_path_indexes[a + 1]:
+                list_min_path_indexes.remove(list_min_path_indexes[a])
+                a -= 1
+            a += 1
+
+        shortes_min_path_points = [points[i] for i in list_min_path_indexes]
+        shortest_path_lines = []
+        for i in range(len(shortes_min_path_points) - 1):
+            line = QgsGeometry.fromPolylineXY([shortes_min_path_points[i],
+                                               shortes_min_path_points[i + 1]])
+            shortest_path_lines.append(line)
+
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
+                                                    shortest_path_lines)
+
+        return shortest_path_lines
 
     def __get_new_point(self, current_point, angle=0):
         if angle >= 180:
@@ -200,7 +262,7 @@ class AngleTurnMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
         feats = searcher.get_features_from_min_path()
         Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", feats)
 
-        # self.__get_shorter_path(feats, 3)
+        self.__get_shorter_path(feats, 1)
 
 
 if __name__ == '__main__':
@@ -210,8 +272,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point_1 = QgsGeometry.fromPointXY(QgsPointXY(39.7899186, 47.2674382))
-    point_2 = QgsGeometry.fromPointXY(QgsPointXY(39.7855080,47.2822433))
+    point_1 = QgsGeometry.fromPointXY(QgsPointXY(39.7886790, 47.2701361))
+    point_2 = QgsGeometry.fromPointXY(QgsPointXY(39.7804552,47.2716039))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
     obstacles = QgsVectorLayer(path)
     check = AngleTurnMethod(point_1, point_2, obstacles, proj)
