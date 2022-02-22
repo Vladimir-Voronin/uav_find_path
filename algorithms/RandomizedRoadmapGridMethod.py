@@ -5,6 +5,7 @@ from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
+from algorithms.addition.GdalExtentions import Converter
 from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
 from algorithms.addition.GeometryPointExpand import GeometryPointExpand
@@ -18,6 +19,11 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         super().__init__(findpathdata, debuglog)
         self.debuglog.info("Create new class")
+        self.random_points_feats = None
+        self.default_graph_feats = None
+        self.min_short_path_tree_feats = None
+        self.final_path_feats = None
+
 
     def __create_grid(self):
         self.debuglog.start_block("create grid")
@@ -57,9 +63,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         list_of_points.append(target_point_expand)
 
         # region display points, may delete
-        Visualizer.update_layer_by_extended_points(
-            r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp",
-            list_of_points, True)
+        self.random_points_feats = Converter.list_of_geometry_points_to_feats(list_of_points)
         # endregion
 
         return list_of_points
@@ -116,8 +120,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
             feat.setGeometry(line)
             qgs_graph.addEdge(point1, point2, [QgsNetworkDistanceStrategy().cost(line.length(), feat)])
 
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_line.shp",
-                                                    list_of_lines)
+        self.default_graph_feats = Converter.list_of_geometry_to_feats(list_of_lines)
         self.debuglog.end_block("graph", True)
         print(self.debuglog.get_info())
         return qgs_graph
@@ -135,14 +138,22 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         print("Length of min path is: ", searcher.min_length_to_vertex())
 
         # visualize the shortest tree graph
-        feats = searcher.get_shortest_tree_features_list()
-        Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_tree.shp", feats)
+        self.min_short_path_tree_feats = searcher.get_shortest_tree_features_list()
 
         # search min path and visualize
-        feats = searcher.get_features_from_min_path()
-        Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", feats)
-        Visualizer.create_and_add_new_line_layer(self.project, self.path_to_save_layers, feats, 'Path')
-        # self.__get_shorter_path(feats, 3)
+        self.final_path_feats = searcher.get_features_from_min_path()
+
+        self.visualize()
+
+    def visualize(self):
+        if self.create_debug_layers:
+            Visualizer.create_and_add_new_default_points(self.project, self.path_to_save_layers,
+                                                         self.random_points_feats)
+            Visualizer.create_and_add_new_default_graph(self.project, self.path_to_save_layers,
+                                                        self.default_graph_feats)
+            Visualizer.create_and_add_new_path_short_tree(self.project, self.path_to_save_layers,
+                                                          self.min_short_path_tree_feats)
+        Visualizer.create_and_add_new_final_path(self.project, self.path_to_save_layers, self.final_path_feats)
 
 
 if __name__ == '__main__':
