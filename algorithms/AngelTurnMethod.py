@@ -1,5 +1,8 @@
 from qgis._analysis import QgsGraph, QgsNetworkDistanceStrategy
 from qgis.core import *
+
+from ModuleInstruments.DebugLog import DebugLog
+from ModuleInstruments.FindPathData import FindPathData
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
@@ -9,8 +12,8 @@ from algorithms.addition.MathFunctions import *
 
 
 class AngleTurnMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
-    def __init__(self, starting_point, target_point, obstacles, project):
-        super().__init__(starting_point, target_point, obstacles, project)
+    def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
+        super().__init__(findpathdata, debuglog)
         self.path_list = []
         self.length_of_step = 50
         self.angle_shift = 15

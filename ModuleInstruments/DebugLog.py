@@ -25,35 +25,41 @@ class DebugLog:
         self.__info += '\n'
         self.__info += message
 
+    def get_info(self):
+        return self.__info
+
+    # region Block measure methods
     def start_time_block(self, name: str):
         if name in self.__dictinary_start_time or name in self.__dictinary_execute_time:
-            raise Exception("This time measure name of the block already used")
+            raise Exception(f"This time measure name of the block named {name} already used")
         self.__dictinary_start_time[name] = time.perf_counter()
 
     def end_time_block(self, name: str, to_info_at_ones=True):
+        save = time.perf_counter()
         if name not in self.__dictinary_start_time:
-            raise Exception("This time measure block hasn't been started")
+            raise Exception(f"This time measure block named {name} hasn't been started")
         if name in self.__dictinary_execute_time:
-            raise Exception("This time measure block already ended")
+            raise Exception(f"This time measure block named {name} already ended")
 
-        self.__dictinary_execute_time[name] = time.perf_counter() - self.__dictinary_start_time[name]
+        self.__dictinary_execute_time[name] = save - self.__dictinary_start_time[name]
         if to_info_at_ones:
             self.info(f'Block "{name}" worked for {self.__dictinary_execute_time[name]} s.')
 
     def start_memory_block(self, name: str):
         if name in self.__dictinary_start_memory or name in self.__dictinary_execute_memory:
-            raise Exception("This name of the memory measure block already used")
-        self.__dictinary_start_memory[name] = memory_usage()
+            raise Exception(f"This name of the memory measure block named {name} already used")
+        self.__dictinary_start_memory[name] = memory_usage()[0]
 
     def end_memory_block(self, name: str, to_info_at_ones=True):
+        save = memory_usage()[0]
         if name not in self.__dictinary_start_memory:
-            raise Exception("This memory measure block hasn't been started")
+            raise Exception(f"This memory measure block named {name} hasn't been started")
         if name in self.__dictinary_execute_memory:
-            raise Exception("This memory measure block already ended")
+            raise Exception(f"This memory measure block named {name} already ended")
 
-        self.__dictinary_execute_memory[name] = memory_usage() - self.__dictinary_start_memory[name]
+        self.__dictinary_execute_memory[name] = save - self.__dictinary_start_memory[name]
         if to_info_at_ones:
-            self.info(f'Block "{name}" worked for {self.__dictinary_execute_memory[name]} MiB')
+            self.info(f'Block "{name}" used {self.__dictinary_execute_memory[name]} MiB')
 
     # Measure time and memory together, start block
     def start_block(self, name: str):
@@ -64,3 +70,5 @@ class DebugLog:
     def end_block(self, name: str, to_info_at_ones=True):
         self.end_time_block(name, to_info_at_ones)
         self.end_memory_block(name, to_info_at_ones)
+
+    # endregion

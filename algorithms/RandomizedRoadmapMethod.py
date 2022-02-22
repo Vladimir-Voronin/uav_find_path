@@ -1,5 +1,7 @@
 from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy, QgsGraphAnalyzer
+from ModuleInstruments.DebugLog import DebugLog
+from ModuleInstruments.FindPathData import FindPathData
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Decorators import measuretime
 from algorithms.addition.Visualizer import Visualizer
@@ -15,12 +17,12 @@ sys.path.insert(0, r'C:\OSGeo4W64\apps\Python37\lib')
 
 
 class RandomizedRoadmapMethod(SearchAlgorithm, SearchMethodAbstract):
-    def __init__(self, starting_point, target_point, obstacles, project):
-        super().__init__(starting_point, target_point, obstacles, project)
+    def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
+        super().__init__(findpathdata, debuglog)
 
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
 
-        self.multi_polygon_geometry = self.hall.create_multipolygon_geometry_by_hall(obstacles, project)
+        self.multi_polygon_geometry = self.hall.create_multipolygon_geometry_by_hall(self.obstacles, self.project)
 
         # constants
         self.const_square_meters = 400

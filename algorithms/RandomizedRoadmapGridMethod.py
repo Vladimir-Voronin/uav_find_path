@@ -1,8 +1,9 @@
 import random
-
 from memory_profiler import memory_usage, profile
 from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
+from ModuleInstruments.DebugLog import DebugLog
+from ModuleInstruments.FindPathData import FindPathData
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
@@ -14,20 +15,25 @@ import math
 
 
 class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
-    def __init__(self, starting_point, target_point, obstacles, project):
-        super().__init__(starting_point, target_point, obstacles, project)
+    def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
+        super().__init__(findpathdata, debuglog)
+        self.debuglog.info("Create new class")
 
-    @measuretime
     def __create_grid(self):
+        self.debuglog.start_block("create grid")
         super()._create_grid()
+        self.debuglog.end_block("create grid")
 
-    @measuretime
     def __get_shorter_path(self, feats, increase_points=0):
+        self.debuglog.start_block("get shorter path")
         super()._get_shorter_path(feats, increase_points)
+        self.debuglog.end_block("get shorter path")
 
-    @measuretime
     def __set_geometry_to_grid(self):
+        self.debuglog.start_block("set geometry to grid")
         super()._set_geometry_to_grid()
+        self.debuglog.end_block("set geometry to grid")
+
 
     @measuretime
     def __get_points(self):
@@ -75,6 +81,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         # list_of_lines contain type QgsGeometry
         list_of_lines = []
 
+        self.debuglog.start_block("graph")
         for id_1, point in enumerate(feats):
             nearest = index.nearestNeighbor(point.geometry().asPoint(), self.const_sight_of_points)
             nearest.pop(0)
@@ -111,10 +118,10 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
 
         Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_line.shp",
                                                     list_of_lines)
-
+        self.debuglog.end_block("graph", True)
+        print(self.debuglog.get_info())
         return qgs_graph
 
-    @measuretime
     def run(self):
         self.__set_geometry_to_grid()
         list_of_points = self.__get_points()
@@ -134,8 +141,8 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         # search min path and visualize
         feats = searcher.get_features_from_min_path()
         Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", feats)
-
-        self.__get_shorter_path(feats, 3)
+        Visualizer.create_and_add_new_line_layer(self.project, self.path_to_save_layers, feats, 'Path')
+        # self.__get_shorter_path(feats, 3)
 
 
 if __name__ == '__main__':
@@ -145,9 +152,12 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7897843,47.2679031))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7848538,47.2733796))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7855414,47.2689864))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7874165,47.2680079))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
+
     obstacles = QgsVectorLayer(path)
-    check = RandomizedRoadmapGridMethod(point1, point2, obstacles, proj)
+    find_path_data = FindPathData(proj, point1, point2, obstacles, r"C:\Users\Neptune\Desktop\Voronin qgis\shp", False)
+    debug_log = DebugLog()
+    check = RandomizedRoadmapGridMethod(find_path_data, debug_log)
     check.run()

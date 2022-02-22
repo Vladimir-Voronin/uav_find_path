@@ -92,20 +92,15 @@ class Hall:
 
         return self.hall_polygon
 
-    def visualize(self, address):
+    def visualize(self):
         # region Визуализация коридора, УДАЛИТЬ ПОЗЖЕ
-        layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp")
+        layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\grid.shp")
         layer.dataProvider().truncate()
         feats = []
         # for i in [point1, point2, point4, point3]:
-        #     point = QgsGeometry.fromPointXY(i)
-        #     feat = QgsFeature(layer.fields())
-        #     feat.setGeometry(point)
-        #     feats.append(feat)
-
-        # feat = QgsFeature(layer.fields())
-        # feat.setGeometry(hall_polygon)
-        # feats.append(feat)
+        feat = QgsFeature(layer.fields())
+        feat.setGeometry(self.hall_polygon)
+        feats.append(feat)
 
         layer.dataProvider().addFeatures(feats)
         layer.triggerRepaint()
@@ -130,8 +125,8 @@ class Hall:
                 point = xform.transform(point.x(), point.y())
                 list_of_points_to_polygon.append(point)
 
-            create_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
-            list_of_geometry.append(create_polygon)
+            created_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
+            list_of_geometry.append(created_polygon)
         polygon = self.hall_polygon
 
         list_of_geometry_handled = []
@@ -149,6 +144,22 @@ class Hall:
 
         return multi_polygon_geometry
 
+    def create_list_of_obstacles(self, obstacles, project):
+        features = obstacles.getFeatures()
+        list_of_obstacles = []
+        for feature in features:
+            geom = feature.geometry()
+            # check for type of the objects
+            if geom.type() == QgsWkbTypes.LineGeometry:
+                list_of_obstacles = self.create_list_of_lines(obstacles, project)
+            elif geom.type() == QgsWkbTypes.PolygonGeometry:
+                list_of_obstacles = self.create_list_of_polygons(obstacles, project)
+            else:
+                raise Exception("This layer contains not lines or polygons")
+            break
+
+        return list_of_obstacles
+
     def create_list_of_polygons(self, obstacles, project):
         features = obstacles.getFeatures()
 
@@ -157,14 +168,19 @@ class Hall:
         # Data for transform to EPSG: 3395
         transformcontext = project.transformContext()
         source_projection = obstacles.crs()
+        b = QgsExpressionContextUtils.layerScope(obstacles).variable('layer_crs')
         general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
         xform = QgsCoordinateTransform(source_projection, general_projection, transformcontext)
         for feature in features:
             geom = feature.geometry()
 
-            # Transform to EPSG 3395
             check = geom.asGeometryCollection()[0].asPolygon()
+
+            if not check:
+                continue
+
             list_of_points_to_polygon = []
+
             for point in check[0]:
                 point = xform.transform(point.x(), point.y())
                 list_of_points_to_polygon.append(point)
@@ -178,16 +194,41 @@ class Hall:
             if polygon.distance(geometry) == 0.0:
                 list_of_geometry_handled.append(geometry)
 
-        # Vizualize DELETE PRE RELEASE!
-        vlayer1 = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_polygon.shp")
-        vlayer1.dataProvider().truncate()
+        return list_of_geometry_handled
 
-        feats = []
-        id_number = -1
-        for pol in list_of_geometry_handled:
-            feat = QgsFeature(vlayer1.fields())
-            feat.setGeometry(pol)
-            feats.append(feat)
-        vlayer1.dataProvider().addFeatures(feats)
+    def create_list_of_lines(self, obstacles, project):
+        features = obstacles.getFeatures()
+
+        list_of_geometry = []
+        # Data for transform to EPSG: 3395
+        transformcontext = project.transformContext()
+        source_projection = obstacles.crs()
+        b = QgsExpressionContextUtils.layerScope(obstacles).variable('layer_crs')
+        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
+        xform = QgsCoordinateTransform(source_projection, general_projection, transformcontext)
+        for feature in features:
+            geom = feature.geometry()
+
+            # Transform to EPSG 3395
+            check = geom.asGeometryCollection()[0].asPolyline()
+
+            if not check:
+                continue
+
+            list_of_points_to_line = []
+
+            for point in check:
+                point = xform.transform(point.x(), point.y())
+                list_of_points_to_line.append(point)
+
+        ######################################## HERE BEGINS Errors
+            create_line = QgsGeometry.fromPolylineXY(list_of_points_to_line)
+            list_of_geometry.append(create_line)
+        polygon = self.hall_polygon
+
+        list_of_geometry_handled = []
+        for geometry in list_of_geometry:
+            if polygon.distance(geometry) == 0.0:
+                list_of_geometry_handled.append(geometry)
 
         return list_of_geometry_handled

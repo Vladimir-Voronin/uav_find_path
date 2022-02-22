@@ -2,6 +2,8 @@ from qgis.core import *
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
 import numpy as np
 
+from algorithms.addition.Visualizer import Visualizer
+
 
 class GridForRoadmap:
     def __init__(self, row, column):
@@ -28,8 +30,6 @@ class GridForRoadmap:
                 if cell.borders.distance(point) <= 0.0:
                     if cell.geometry is not None:
                         return cell
-
-
 
     def get_multipolygon_by_points(self, point1, point2):
         cell1 = self.cells[point1.n_row][point1.n_column]
@@ -93,7 +93,7 @@ class GridForRoadmap:
             polygon.addPartGeometry(list_of_cells[i].geometry)
         return polygon
 
-    def vizualize(self, project):
+    def visualize(self, project):
         project.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
         layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\grid.shp")
         layer.dataProvider().truncate()
@@ -106,6 +106,13 @@ class GridForRoadmap:
         layer.dataProvider().addFeatures(feats)
         layer.triggerRepaint()
 
+    def visualize_geometry_of_the_grid(self):
+        geometry_list = []
+        for row in self.cells:
+            for cell in row:
+                geometry_list.append(cell.geometry)
+        Visualizer.update_layer_by_geometry_objects(r'C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path2.shp',
+                                                    geometry_list)
 
 if __name__ == "__main__":
     a = GridForRoadmap(2, 4)

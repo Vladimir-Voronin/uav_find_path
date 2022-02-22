@@ -1,4 +1,7 @@
 from qgis.core import *
+
+from ModuleInstruments.DebugLog import DebugLog
+from ModuleInstruments.FindPathData import FindPathData
 from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.GridForRoadmap import GridForRoadmap
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
@@ -9,8 +12,8 @@ import math
 
 
 class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
-    def __init__(self, starting_point, target_point, obstacles, project):
-        super().__init__(starting_point, target_point, obstacles, project)
+    def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
+        super().__init__(findpathdata, debuglog)
         # constants
         self.const_square_meters = 400
         self.const_sight_of_points = 12
@@ -18,9 +21,10 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
 
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
 
-        self.list_of_polygons = self.hall.create_list_of_polygons(obstacles, project)
+        self.list_of_obstacles_geometry = self.hall.create_list_of_obstacles(self.obstacles, self.project)
 
         self.grid = self._create_grid()
+        self.left_x, self.right_x, self.bottom_y, self.top_y = None, None, None, None
 
     def _create_grid(self):
         self.left_x = min(self.hall.point1.x(), self.hall.point2.x(), self.hall.point3.x(), self.hall.point4.x())
@@ -35,7 +39,6 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         print("columns: ", number_of_columns)
         lx = self.left_x
         ly = self.top_y
-        a = 0
         coor_row = 0
         coor_column = 0
         for row in grid.cells:
@@ -57,6 +60,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
             lx = self.left_x
             coor_column = 0
             coor_row += 1
+
         return grid
 
     def _get_shorter_path(self, feats, increase_points=0):
@@ -91,7 +95,6 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         list_min_path_indexes = [0]
         update_index = 1
         i = 0
-        self.grid.vizualize(self.project)
 
         depth = 30
         while i < len(points_extended):
@@ -138,4 +141,4 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         for row in self.grid.cells:
             for cell in row:
                 if cell.borders.distance(self.hall.hall_polygon) == 0:
-                    cell.set_geometry(self.list_of_polygons)
+                    cell.set_geometry(self.list_of_obstacles_geometry)

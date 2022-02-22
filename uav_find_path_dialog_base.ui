@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>240</y>
+     <y>246</y>
      <width>81</width>
      <height>16</height>
     </rect>
@@ -202,7 +202,7 @@ p, li { white-space: pre-wrap; }
      <x>90</x>
      <y>240</y>
      <width>251</width>
-     <height>21</height>
+     <height>31</height>
     </rect>
    </property>
    <property name="verticalScrollBarPolicy">
@@ -282,7 +282,7 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>350</x>
-     <y>240</y>
+     <y>244</y>
      <width>31</width>
      <height>23</height>
     </rect>
@@ -295,7 +295,7 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>280</y>
+     <y>283</y>
      <width>171</width>
      <height>17</height>
     </rect>
@@ -308,7 +308,7 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>310</y>
+     <y>313</y>
      <width>361</width>
      <height>151</height>
     </rect>
@@ -318,7 +318,7 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>290</x>
-     <y>490</y>
+     <y>493</y>
      <width>91</width>
      <height>41</height>
     </rect>
@@ -331,7 +331,7 @@ p, li { white-space: pre-wrap; }
    <property name="geometry">
     <rect>
      <x>20</x>
-     <y>470</y>
+     <y>473</y>
      <width>101</width>
      <height>17</height>
     </rect>

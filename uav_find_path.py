@@ -23,27 +23,30 @@
 """
 
 import qgis
+from PyQt5.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QMainWindow, QDialog
 from qgis.core import *
 from qgis.gui import *
-import PyQt5
-# Initialize Qt resources from file resources.py
-from .resources import *
-# Import the code for the dialog
-from .uav_find_path_dialog import UAVFindPathDialog
 import os.path
 import os
-import time
-
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
 import sys
 sys.path.append(dir_path)
 
-# Вылезает ошибка. Почему - не известно
-from algorithms import RandomizedRoadmapMethod
+import PyQt5
+# Initialize Qt resources from file resources.py
+from ModuleInstruments.DebugLog import DebugLog
+from ModuleInstruments.FindPathData import FindPathData, check_if_FindPathData_is_ok
+from .resources import *
+# Import the code for the dialog
+from .uav_find_path_dialog import UAVFindPathDialog
+
+import time
+
+
+from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod
 
 
 class UAVFindPath:
@@ -81,9 +84,11 @@ class UAVFindPath:
         # Must be set in initGui() to survive plugin reloads
         self.first_start = None
         # parametrs
+        self.project = None
         self.obstacle_layer = None
-        self.point1 = None
-        self.point2 = None
+        self.start_point = None
+        self.target_point = None
+        self.path_to_save_layers = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -195,18 +200,23 @@ class UAVFindPath:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def choose_directory(self):
+        self.path_to_save_layers = QFileDialog.getExistingDirectory(self.dlg, caption='Select folder')
+        self.dlg.textEdit_save_folder.setText(self.path_to_save_layers)
+
     def set_obstacle_layer(self, layers):
         selected_layer_index = self.dlg.comboBox_select_obstacles.currentIndex() - 1
         if selected_layer_index >= 0:
             self.obstacle_layer = layers[selected_layer_index].layer()
 
-    def point_button_clicked(self, number_of_points):
+
+    def point_button_clicked(self, number_of_point):
         dial = QDialog(None)
         dial.show()
-        if number_of_points == 1:
+        if number_of_point == 1:
             text_x = self.dlg.textEdit_start_point_x
             text_y = self.dlg.textEdit_start_point_y
-        elif number_of_points == 2:
+        elif number_of_point == 2:
             text_x = self.dlg.textEdit_target_point_x
             text_y = self.dlg.textEdit_target_point_y
         canvas = QgsMapCanvas()
@@ -220,13 +230,13 @@ class UAVFindPath:
         emit_point = QgsMapToolEmitPoint(canvas)
         canvas.setMapTool(emit_point)
 
-        def display(pt, e):
+        def display(pt):
             text_x.setText(str(pt.x()))
             text_y.setText(str(pt.y()))
-            if number_of_points == 1:
-                self.point1 = QgsGeometry.fromPointXY(QgsPointXY(pt.x(), pt.y()))
-            elif number_of_points == 2:
-                self.point2 = QgsGeometry.fromPointXY(QgsPointXY(pt.x(), pt.y()))
+            if number_of_point == 1:
+                self.start_point = QgsGeometry.fromPointXY(QgsPointXY(pt.x(), pt.y()))
+            elif number_of_point == 2:
+                self.target_point = QgsGeometry.fromPointXY(QgsPointXY(pt.x(), pt.y()))
             canvas.destroy()
             dial.done(1)
 
@@ -235,6 +245,16 @@ class UAVFindPath:
         result = dial.exec_()
         if result:
             pass
+
+    def press_run(self):
+        find_path_data = FindPathData(self.project, self.start_point, self.target_point, self.obstacle_layer,
+                                      self.path_to_save_layers, self.dlg.checkBox_create_debug_layers.isChecked())
+
+        if check_if_FindPathData_is_ok(find_path_data):
+            debug_log = DebugLog()
+            current_algorithm = RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod(find_path_data, debug_log)
+            current_algorithm.run()
+            self.dlg.textEdit_debug_info.setText(current_algorithm.debuglog.get_info())
 
     def run(self):
         """Run method that performs all the real work"""
@@ -252,8 +272,8 @@ class UAVFindPath:
         self.dlg.pushButton_start_point.clicked.connect(lambda: self.point_button_clicked(1))
         self.dlg.pushButton_target_point.clicked.connect(lambda: self.point_button_clicked(2))
         # add layers to "select layer"
-        project = QgsProject.instance()
-        layers = project.layerTreeRoot().children()
+        self.project = QgsProject.instance()
+        layers = self.project.layerTreeRoot().children()
         self.dlg.comboBox_select_obstacles.clear()
         self.dlg.comboBox_select_obstacles.addItem("")
         self.dlg.comboBox_select_obstacles.addItems([layer.name() for layer in layers])
@@ -264,14 +284,12 @@ class UAVFindPath:
         self.dlg.comboBox_select_search_method.addItems(algorithm_dict.keys())
         # show the dialog
         self.dlg.show()
+        self.dlg.pushButton_save_folder.clicked.connect(lambda: self.choose_directory())
 
+        self.dlg.pushButton_run.clicked.connect(lambda: self.press_run())
         # Run the dialog event loop
         result = self.dlg.exec_()
 
         # See if OK was pressed
         if result:
-            project = QgsProject.instance()
-            check = RandomizedRoadmapMethod.RandomizedRoadmapMethod(self.point1, self.point2, self.obstacle_layer,
-                                                                    project)
-            check.run()
             pass
