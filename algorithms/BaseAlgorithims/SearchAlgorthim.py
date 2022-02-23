@@ -1,6 +1,7 @@
 from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
+import logging
 
 
 class SearchAlgorithm:

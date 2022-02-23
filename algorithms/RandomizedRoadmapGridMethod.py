@@ -1,5 +1,4 @@
-import random
-from memory_profiler import memory_usage, profile
+import logging
 from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from ModuleInstruments.DebugLog import DebugLog
@@ -19,11 +18,11 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         super().__init__(findpathdata, debuglog)
         self.debuglog.info("Create new class")
+        self.debuglog.info(f"There are {len(self.list_of_obstacles_geometry)} objects in list_of_obstacles_geometry")
         self.random_points_feats = None
         self.default_graph_feats = None
         self.min_short_path_tree_feats = None
         self.final_path_feats = None
-
 
     def __create_grid(self):
         self.debuglog.start_block("create grid")
@@ -39,7 +38,6 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         self.debuglog.start_block("set geometry to grid")
         super()._set_geometry_to_grid()
         self.debuglog.end_block("set geometry to grid")
-
 
     @measuretime
     def __get_points(self):
@@ -136,7 +134,6 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
             return None
 
         print("Length of min path is: ", searcher.min_length_to_vertex())
-
         # visualize the shortest tree graph
         self.min_short_path_tree_feats = searcher.get_shortest_tree_features_list()
 
@@ -163,8 +160,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7855414,47.2689864))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7874165,47.2680079))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7742723, 47.2765539))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7745084, 47.2766453))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
     obstacles = QgsVectorLayer(path)

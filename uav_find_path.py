@@ -31,8 +31,11 @@ from qgis.core import *
 from qgis.gui import *
 import os.path
 import os
+import copy
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 import sys
+
 sys.path.append(dir_path)
 
 import PyQt5
@@ -44,7 +47,6 @@ from .resources import *
 from .uav_find_path_dialog import UAVFindPathDialog
 
 import time
-
 
 from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod
 
@@ -204,15 +206,16 @@ class UAVFindPath:
         self.path_to_save_layers = QFileDialog.getExistingDirectory(self.dlg, caption='Select folder')
         self.dlg.textEdit_save_folder.setText(self.path_to_save_layers)
 
-    def set_obstacle_layer(self, layers):
+    def set_obstacle_layer(self):
+        layers = self.project.layerTreeRoot().children()
         selected_layer_index = self.dlg.comboBox_select_obstacles.currentIndex() - 1
         if selected_layer_index >= 0:
             self.obstacle_layer = layers[selected_layer_index].layer()
 
-
     def point_button_clicked(self, number_of_point):
         dial = QDialog(None)
         dial.show()
+        dial.setModal(True)
         if number_of_point == 1:
             text_x = self.dlg.textEdit_start_point_x
             text_y = self.dlg.textEdit_start_point_y
@@ -233,28 +236,53 @@ class UAVFindPath:
         def display(pt):
             text_x.setText(str(pt.x()))
             text_y.setText(str(pt.y()))
-            if number_of_point == 1:
-                self.start_point = QgsGeometry.fromPointXY(QgsPointXY(pt.x(), pt.y()))
-            elif number_of_point == 2:
-                self.target_point = QgsGeometry.fromPointXY(QgsPointXY(pt.x(), pt.y()))
             canvas.destroy()
             dial.done(1)
 
         emit_point.canvasClicked.connect(display)
 
-        result = dial.exec_()
+        result = dial.exec()
         if result:
             pass
 
+    def update_combo_box_layers(self):
+        layers = self.project.layerTreeRoot().children()
+        self.dlg.comboBox_select_obstacles.clear()
+        self.dlg.comboBox_select_obstacles.addItem("")
+        self.dlg.comboBox_select_obstacles.addItems([layer.name() for layer in layers])
+
     def press_run(self):
-        find_path_data = FindPathData(self.project, self.start_point, self.target_point, self.obstacle_layer,
+        debug_log = DebugLog()
+        debug_log.info("Button 'Run' was pressed")
+        # Reading data from interface
+        self.start_point = QgsGeometry.fromPointXY(
+            QgsPointXY(float(self.dlg.textEdit_start_point_x.toPlainText()),
+                       float(self.dlg.textEdit_start_point_y.toPlainText())))
+        self.target_point = QgsGeometry.fromPointXY(
+            QgsPointXY(float(self.dlg.textEdit_target_point_x.toPlainText()),
+                       float(self.dlg.textEdit_target_point_y.toPlainText())))
+
+        debug_log.info(f"start_point x = {float(self.dlg.textEdit_start_point_x.toPlainText())}")
+        debug_log.info(f"start_point y = {float(self.dlg.textEdit_start_point_y.toPlainText())}")
+        debug_log.info(f"target_point x = {float(self.dlg.textEdit_target_point_x.toPlainText())}")
+        debug_log.info(f"target_point y = {float(self.dlg.textEdit_target_point_y.toPlainText())}")
+
+        self.path_to_save_layers = self.dlg.textEdit_save_folder.toPlainText()
+        debug_log.info(f"path to save layers = {self.path_to_save_layers}")
+        layer_to_algortithm = QgsVectorLayer(self.obstacle_layer.source(), self.obstacle_layer.name(),
+                                             self.obstacle_layer.providerType())
+        find_path_data = FindPathData(self.project, self.start_point, self.target_point,
+                                      layer_to_algortithm,
                                       self.path_to_save_layers, self.dlg.checkBox_create_debug_layers.isChecked())
 
         if check_if_FindPathData_is_ok(find_path_data):
-            debug_log = DebugLog()
+            debug_log.info("FindPathData is ok!")
             current_algorithm = RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod(find_path_data, debug_log)
             current_algorithm.run()
             self.dlg.textEdit_debug_info.setText(current_algorithm.debuglog.get_info())
+            # clean resources
+            self.update_combo_box_layers()
+            self.dlg.comboBox_select_obstacles.setCurrentIndex(0)
 
     def run(self):
         """Run method that performs all the real work"""
@@ -264,29 +292,26 @@ class UAVFindPath:
         if self.first_start:
             self.first_start = False
             self.dlg = UAVFindPathDialog()
+            # button logic
+            self.dlg.pushButton_start_point.clicked.connect(lambda: self.point_button_clicked(1))
+            self.dlg.pushButton_target_point.clicked.connect(lambda: self.point_button_clicked(2))
+            self.dlg.comboBox_select_obstacles.currentIndexChanged.connect(lambda: self.set_obstacle_layer())
+            self.dlg.pushButton_save_folder.clicked.connect(lambda: self.choose_directory())
+            self.dlg.pushButton_run.clicked.connect(lambda: self.press_run())
+
+        self.project = QgsProject.instance()
 
         # dict of algorithms
         algorithm_dict = {'RandomizedRoadmapMethod': RandomizedRoadmapMethod.RandomizedRoadmapMethod}
-
-        # button logic
-        self.dlg.pushButton_start_point.clicked.connect(lambda: self.point_button_clicked(1))
-        self.dlg.pushButton_target_point.clicked.connect(lambda: self.point_button_clicked(2))
         # add layers to "select layer"
-        self.project = QgsProject.instance()
-        layers = self.project.layerTreeRoot().children()
-        self.dlg.comboBox_select_obstacles.clear()
-        self.dlg.comboBox_select_obstacles.addItem("")
-        self.dlg.comboBox_select_obstacles.addItems([layer.name() for layer in layers])
-        self.dlg.comboBox_select_obstacles.currentIndexChanged.connect(lambda: self.set_obstacle_layer(layers))
+        self.update_combo_box_layers()
 
         # add search methods to "select search methods
         self.dlg.comboBox_select_search_method.clear()
         self.dlg.comboBox_select_search_method.addItems(algorithm_dict.keys())
         # show the dialog
         self.dlg.show()
-        self.dlg.pushButton_save_folder.clicked.connect(lambda: self.choose_directory())
 
-        self.dlg.pushButton_run.clicked.connect(lambda: self.press_run())
         # Run the dialog event loop
         result = self.dlg.exec_()
 
