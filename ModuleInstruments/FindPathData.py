@@ -37,7 +37,6 @@ def check_if_FindPathData_is_ok(find_path_data: FindPathData):
     # type: QgsPointXY
     start_point = xform.transform(find_path_data.start_point.asPoint())
     target_point = xform.transform(find_path_data.target_point.asPoint())
-
     features = find_path_data.obstacles.getFeatures()
     list_of_geometry = []
     for feature in features:
@@ -45,29 +44,22 @@ def check_if_FindPathData_is_ok(find_path_data: FindPathData):
 
         check = None
         # Transform to EPSG 3395
-        if geom.type() == QgsWkbTypes.LineGeometry:
-            check = geom.asGeometryCollection()[0].asPolyline()
-        elif geom.type() == QgsWkbTypes.PolygonGeometry:
-            check = geom.asGeometryCollection()[0].asPolygon()
+        check = geom.asGeometryCollection()[0].asPolygon()
 
         if not check:
             continue
 
         list_of_points_to_polygon = []
-        if geom.type() == QgsWkbTypes.LineGeometry:
-            for point in check:
-                point = xform.transform(point.x(), point.y())
-                list_of_points_to_polygon.append(point)
-        elif geom.type() == QgsWkbTypes.PolygonGeometry:
+
+        if general_projection != find_path_data.obstacles.crs():
             for point in check[0]:
                 point = xform.transform(point.x(), point.y())
                 list_of_points_to_polygon.append(point)
+        else:
+            for point in check[0]:
+                list_of_points_to_polygon.append(point)
 
-        created_polygon = None
-        if geom.type() == QgsWkbTypes.LineGeometry:
-            created_polygon = QgsGeometry.fromPolylineXY([list_of_points_to_polygon])
-        elif geom.type() == QgsWkbTypes.PolygonGeometry:
-            created_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
+        created_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
 
         list_of_geometry.append(created_polygon)
 

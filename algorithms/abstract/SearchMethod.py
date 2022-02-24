@@ -7,4 +7,6 @@ class SearchMethodAbstract:
     @abstractmethod
     def run(self): raise NotImplementedError
 
+    @abstractmethod
+    def vusualise(self): raise NotImplementedError
 

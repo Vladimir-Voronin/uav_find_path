@@ -160,9 +160,11 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7742723, 47.2765539))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7745084, 47.2766453))
-    path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
+    # point1 = QgsGeometry.fromPointXY(QgsPointXY(39.765820, 47.276433))
+    # point2 = QgsGeometry.fromPointXY(QgsPointXY(39.764336, 47.273276))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(4426756.3, 5955923.8))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(4426537.3, 5955421.9))
+    path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\OsmQuery3395.shp"
 
     obstacles = QgsVectorLayer(path)
     find_path_data = FindPathData(proj, point1, point2, obstacles, r"C:\Users\Neptune\Desktop\Voronin qgis\shp", False)

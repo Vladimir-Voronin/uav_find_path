@@ -1,10 +1,14 @@
+from abc import ABC
+
 from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 import logging
 
+from checks.check_abstract import SearchMethod
 
-class SearchAlgorithm:
+
+class SearchAlgorithm(SearchMethod):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         # others
         self.current_id = 0
@@ -29,3 +33,8 @@ class SearchAlgorithm:
                                                                         self.target_point.y()))
         self.debuglog = debuglog
 
+    def run(self):
+        raise NotImplementedError
+
+    def visualise(self):
+        raise NotImplementedError
