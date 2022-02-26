@@ -1,4 +1,6 @@
 import logging
+from abc import ABC
+
 from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 
@@ -16,7 +18,7 @@ from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBas
 import math
 
 
-class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
+class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         super().__init__(findpathdata, debuglog)
         self.debuglog.info("Create new class")

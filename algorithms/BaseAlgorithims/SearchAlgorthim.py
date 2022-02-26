@@ -8,7 +8,7 @@ import logging
 from checks.check_abstract import SearchMethod
 
 
-class SearchAlgorithm(SearchMethod):
+class SearchAlgorithm(SearchMethod, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         # others
         self.current_id = 0

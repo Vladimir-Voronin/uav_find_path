@@ -1,3 +1,5 @@
+from abc import ABC
+
 from qgis.core import *
 
 from ModuleInstruments.DebugLog import DebugLog
@@ -12,7 +14,7 @@ from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 import math
 
 
-class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
+class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         super().__init__(findpathdata, debuglog)
         # constants
@@ -27,8 +29,8 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
             self.list_of_obstacles_geometry = self.hall.create_list_of_polygons_by_source_geometry(
                 self.source_list_of_geometry_obstacles)
 
-        self.grid = self._create_grid()
         self.left_x, self.right_x, self.bottom_y, self.top_y = None, None, None, None
+        self.grid = self._create_grid()
 
     def _create_grid(self):
         self.left_x = min(self.hall.point1.x(), self.hall.point2.x(), self.hall.point3.x(), self.hall.point4.x())
