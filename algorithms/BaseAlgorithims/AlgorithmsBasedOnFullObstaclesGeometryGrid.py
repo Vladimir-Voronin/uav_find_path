@@ -69,27 +69,26 @@ class AlgorithmsBasedOnFullObstaclesGeometryGrid(SearchAlgorithm, ABC):
         grid = GridForRoadmap(number_of_rows, number_of_columns)
         print("rows: ", number_of_columns)
         print("columns: ", number_of_columns)
-        lx = self.left_x
-        ly = self.top_y
+        bx = self.left_x
+        ty = self.top_y
         coor_row = 0
         coor_column = 0
         for row in grid.cells:
-            ry = ly - self.step_of_the_grid
+            ry = ty - self.step_of_the_grid
             if ry < self.bottom_y:
                 ry = self.bottom_y
-            rx = lx + self.step_of_the_grid
+            rx = bx + self.step_of_the_grid
             if rx > self.right_x:
                 rx = self.right_x
             for _ in row:
-                cell = CellOfTheGrid(lx, ly, rx, ry)
+                cell = CellOfTheGrid(bx, ty, rx, ry)
                 grid.add_cell_by_coordinates(cell, coor_row, coor_column)
-                lx += self.step_of_the_grid
+                bx += self.step_of_the_grid
                 rx += self.step_of_the_grid
                 coor_column += 1
                 if rx > self.right_x:
                     rx = self.right_x
-            ly -= self.step_of_the_grid
-            lx = self.left_x
+            ty -= self.step_of_the_grid
             coor_column = 0
             coor_row += 1
 

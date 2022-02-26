@@ -98,7 +98,6 @@ class RandomizedRoadmapMethod(SearchAlgorithm, SearchMethodAbstract):
                     line = QgsGeometry.fromPolylineXY([point.geometry().asPoint(),
                                                        feats[nearest_point_id].geometry().asPoint()])
 
-
                     if self.multi_polygon_geometry.distance(line) > 0.0:
                         # add to list of duplicates backwords, ADDING IS BACKWORD
                         list_to_duplicate_backwords.append([point2, point1])
@@ -162,8 +161,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7899186,47.2674382))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.771948,47.283142))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7899186, 47.2674382))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.771948, 47.283142))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
     obstacles = QgsVectorLayer(path)
     print(obstacles)

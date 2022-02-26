@@ -135,16 +135,26 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         searcher = QgsGraphSearcher(graph, self.starting_point, self.target_point, 0)
 
         if not searcher.check_to_pave_the_way():
+            self.debuglog.info("the algorithm failed to pave the way")
             print("the algorithm failed to pave the way")
             return None
 
+        self.debuglog.info("Length of min path is: " + str(searcher.min_length_to_vertex()))
         print("Length of min path is: ", searcher.min_length_to_vertex())
-        # visualize the shortest tree graph
+
+        # get the shortest tree graph
         self.min_short_path_tree_feats = searcher.get_shortest_tree_features_list()
 
-        # search min path and visualize
+        self.debuglog.info("get_short_path_tree_feats")
+
+        # get min path and visualize
         self.final_path_feats = searcher.get_features_from_min_path()
+
+        self.debuglog.info("get_pre_final_path")
+
         self.final_path_feats = self.__get_shorter_path(self.final_path_feats, 2)
+
+        self.debuglog.info("get_final_path")
 
         self.visualize()
 
@@ -172,8 +182,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.765820, 47.276433))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.764336, 47.273276))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.77047669544139, 47.27478345534227))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.774777318837074, 47.27599603712678))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
     obstacles = QgsVectorLayer(path)

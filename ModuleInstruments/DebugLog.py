@@ -1,5 +1,6 @@
 import time
 from memory_profiler import memory_usage
+import logging
 
 
 class DebugLog:
@@ -20,8 +21,10 @@ class DebugLog:
         # key=name_of_block, value endblock memory - block memory start.
         # Use to take memory of particular block
         self.__dictinary_execute_memory = {}
+        logging.basicConfig(filename=r'C:\Users\Neptune\Desktop\app.txt', filemode='w', level=logging.DEBUG)
 
     def info(self, message: str):
+        logging.debug(message)
         self.__info += '\n'
         self.__info += message
 

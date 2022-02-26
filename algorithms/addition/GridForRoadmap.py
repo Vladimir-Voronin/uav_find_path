@@ -2,6 +2,7 @@ from qgis.core import *
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
 import numpy as np
 
+from algorithms.addition.GeometryPointExpand import GeometryPointExpand
 from algorithms.addition.Visualizer import Visualizer
 
 
@@ -21,15 +22,24 @@ class GridForRoadmap:
     def difine_point(self, point):
         for row in self.cells:
             for cell in row:
-                if cell.borders.distance(point) <= 0.0:
+                if not cell.borders.distance(point):
                     return cell
 
     def difine_point_or_create(self, point):
         for row in self.cells:
             for cell in row:
-                if cell.borders.distance(point) <= 0.0:
+                if not cell.borders.distance(point):
                     if cell.geometry is not None:
                         return cell
+
+    def get_point_expand(self, point):
+        point_x = point.asPoint().x()
+        point_y = point.asPoint().y()
+        for row in self.cells:
+            for cell in row:
+                if cell.point_lx_ty.x() > point_x and point_x < cell.point_rx_ty.x():
+                    if cell.point_rx_by.y() > point_y and point_y < cell.point_lx_ty.y():
+                        return GeometryPointExpand(point, cell.n_row, cell.n_column)
 
     def get_multipolygon_by_points(self, point1, point2):
         cell1 = self.cells[point1.n_row][point1.n_column]

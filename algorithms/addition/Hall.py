@@ -71,7 +71,7 @@ class Hall:
         self.Yp = hall_width * self.cos
         self.square = (ev_len * self.hall_width * 2)
 
-        # Точки расположены в порядке создания прямоугольника, ЭТО НЕ ТОЧКИ ЭТО ПРИРАЩЕНИЯ
+        # Точки расположены в порядке создания прямоугольника
         hall[0][0] = x3 + self.Xp
         hall[0][1] = y3 - self.Yp
 
