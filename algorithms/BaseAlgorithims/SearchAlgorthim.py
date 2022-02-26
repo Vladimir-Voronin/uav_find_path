@@ -16,6 +16,7 @@ class SearchAlgorithm(SearchMethod):
         self.obstacles = findpathdata.obstacles  # type: QgsVectorLayer
         self.path_to_save_layers = findpathdata.path_to_save_layers
         self.create_debug_layers = findpathdata.create_debug_layers
+        self.source_list_of_geometry_obstacles = findpathdata.source_list_of_geometry_obstacles
         # transform to EPSG 3395
         # need to change "project" to "QgsProject.instance" when import to module
         transformcontext = self.project.transformContext()

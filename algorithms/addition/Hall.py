@@ -171,25 +171,31 @@ class Hall:
         xform = QgsCoordinateTransform(source_projection, general_projection, transformcontext)
         for feature in features:
             geom = feature.geometry()
-            check = geom.asGeometryCollection()[0].asPolygon()
-            if not check:
-                continue
-
-            list_of_points_to_polygon = []
-            create_polygon = None
             if source_projection != general_projection:
-                for point in check[0]:
-                    point = xform.transform(point.x(), point.y())
-                    list_of_points_to_polygon.append(point)
-                create_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
+                check = geom.asGeometryCollection()[0].asPolygon()
+                if not check:
+                    continue
+
+                list_of_points_to_polygon = []
+                if source_projection != general_projection:
+                    for point in check[0]:
+                        point = xform.transform(point.x(), point.y())
+                        list_of_points_to_polygon.append(point)
+                    create_polygon = QgsGeometry.fromPolygonXY([list_of_points_to_polygon])
+                else:
+                    create_polygon = QgsGeometry.fromPolygonXY(check[0])
+                list_of_geometry.append(create_polygon)
             else:
-                create_polygon = QgsGeometry.fromPolygonXY(check[0])
+                list_of_geometry.append(geom)
 
-            list_of_geometry.append(create_polygon)
+        list_of_geometry_handled = self.create_list_of_polygons_by_source_geometry(list_of_geometry)
+
+        return list_of_geometry_handled
+
+    def create_list_of_polygons_by_source_geometry(self, source_geometry):
         polygon = self.hall_polygon
-
         list_of_geometry_handled = []
-        for geometry in list_of_geometry:
+        for geometry in source_geometry:
             if polygon.distance(geometry) == 0.0:
                 list_of_geometry_handled.append(geometry)
 

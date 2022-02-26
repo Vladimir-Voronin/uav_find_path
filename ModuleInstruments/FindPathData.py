@@ -3,13 +3,15 @@ from qgis.core import *
 
 class FindPathData:
     def __init__(self, project: QgsProject, start_point: QgsGeometry, target_point: QgsGeometry,
-                 obstacles: QgsVectorLayer, path_to_save_layers: str, create_debug_layers: bool):
+                 obstacles: QgsVectorLayer, path_to_save_layers: str, create_debug_layers: bool,
+                 source_list_of_geometry_obstacles):
         self.project = project
         self.start_point = start_point
         self.target_point = target_point
         self.obstacles = obstacles
         self.path_to_save_layers = path_to_save_layers
         self.create_debug_layers = create_debug_layers
+        self.source_list_of_geometry_obstacles = source_list_of_geometry_obstacles
 
 
 def check_if_FindPathData_is_ok(find_path_data: FindPathData):

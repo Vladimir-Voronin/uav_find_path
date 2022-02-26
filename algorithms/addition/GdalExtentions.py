@@ -1,7 +1,7 @@
 from qgis._core import QgsFeature, QgsVectorLayer
 
 
-class Converter:
+class ObjectsConverter:
     @staticmethod
     def list_of_geometry_points_to_feats(list_of_points):
         layer = QgsVectorLayer()

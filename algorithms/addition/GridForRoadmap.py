@@ -51,10 +51,12 @@ class GridForRoadmap:
                 numbers += self.cells[i][k].number_of_polyg
                 list_of_cells.append(self.cells[i][k])
 
-        polygon = QgsGeometry(list_of_cells[0].geometry)
-        for i in range(1, len(list_of_cells)):
-            if list_of_cells[i].geometry is not None:
+        polygon = QgsGeometry.fromPolygonXY([[QgsPointXY(1, 1), QgsPointXY(2, 2), QgsPointXY(2, 1)]])
+        for i in range(0, len(list_of_cells)):
+            if list_of_cells[i].geometry is not None and not list_of_cells[i].geometry.isNull():
+                a = list_of_cells[i].geometry
                 polygon.addPartGeometry(list_of_cells[i].geometry)
+        polygon.deletePart(0)
         return polygon
 
     def get_multipolygon_by_cells(self, cell1, cell2):
@@ -113,6 +115,7 @@ class GridForRoadmap:
                 geometry_list.append(cell.geometry)
         Visualizer.update_layer_by_geometry_objects(r'C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path2.shp',
                                                     geometry_list)
+
 
 if __name__ == "__main__":
     a = GridForRoadmap(2, 4)

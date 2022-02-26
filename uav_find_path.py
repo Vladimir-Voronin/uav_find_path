@@ -21,7 +21,10 @@
  *                                                                         *
  ***************************************************************************/
 """
-
+import os
+import sys
+dir_path = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(dir_path)
 import qgis
 from PyQt5.QtWidgets import QFileDialog
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
@@ -30,13 +33,11 @@ from qgis.PyQt.QtWidgets import QAction, QMainWindow, QDialog
 from qgis.core import *
 from qgis.gui import *
 import os.path
-import os
 import copy
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-import sys
+from ModuleInstruments.Converter import Converter
 
-sys.path.append(dir_path)
+
 
 import PyQt5
 # Initialize Qt resources from file resources.py
@@ -254,6 +255,7 @@ class UAVFindPath:
     def press_run(self):
         debug_log = DebugLog()
         debug_log.info("Button 'Run' was pressed")
+
         # Reading data from interface
         self.start_point = QgsGeometry.fromPointXY(
             QgsPointXY(float(self.dlg.textEdit_start_point_x.toPlainText()),
@@ -268,15 +270,23 @@ class UAVFindPath:
         debug_log.info(f"target_point y = {float(self.dlg.textEdit_target_point_y.toPlainText())}")
 
         self.path_to_save_layers = self.dlg.textEdit_save_folder.toPlainText()
+
         debug_log.info(f"path to save layers = {self.path_to_save_layers}")
+
         layer_to_algortithm = QgsVectorLayer(self.obstacle_layer.source(), self.obstacle_layer.name(),
                                              self.obstacle_layer.providerType())
+        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(layer_to_algortithm, self.project)
+
+        debug_log.info(f"len of source_list_of_geometry_obstacles = {len(source_list_of_geometry_obstacles)}")
+
         find_path_data = FindPathData(self.project, self.start_point, self.target_point,
                                       layer_to_algortithm,
-                                      self.path_to_save_layers, self.dlg.checkBox_create_debug_layers.isChecked())
+                                      self.path_to_save_layers, self.dlg.checkBox_create_debug_layers.isChecked(),
+                                      source_list_of_geometry_obstacles)
 
         if check_if_FindPathData_is_ok(find_path_data):
             debug_log.info("FindPathData is ok!")
+
             current_algorithm = RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod(find_path_data, debug_log)
             current_algorithm.run()
             self.dlg.textEdit_debug_info.setText(current_algorithm.debuglog.get_info())

@@ -2,6 +2,7 @@ from qgis.core import *
 
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
+from algorithms.addition.GdalExtentions import ObjectsConverter
 from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.GridForRoadmap import GridForRoadmap
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
@@ -20,8 +21,11 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         self.step_of_the_grid = 100  # step of the grid
 
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
-
-        self.list_of_obstacles_geometry = self.hall.create_list_of_obstacles(self.obstacles, self.project)
+        if self.source_list_of_geometry_obstacles is None:
+            self.list_of_obstacles_geometry = self.hall.create_list_of_obstacles(self.obstacles, self.project)
+        else:
+            self.list_of_obstacles_geometry = self.hall.create_list_of_polygons_by_source_geometry(
+                self.source_list_of_geometry_obstacles)
 
         self.grid = self._create_grid()
         self.left_x, self.right_x, self.bottom_y, self.top_y = None, None, None, None
@@ -69,8 +73,6 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
         points = [i.asPolyline()[0] for i in min_path_geometry]
         # adding last point
         points.append(min_path_geometry[-1].asPolyline()[1])
-        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_point.shp",
-                                           points)
         # increase points in path to get shorter path
         i = 0
         while i < len(points) - 1:
@@ -82,9 +84,6 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
                 points.insert(i + k + 1, point)
             i += increase_points + 1
 
-
-        Visualizer.create_new_layer_points(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp",
-                                           points)
         points_extended = []
         for point in points:
             point = QgsGeometry.fromPointXY(point)
@@ -131,10 +130,9 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm):
                                                shortes_min_path_points[i + 1].point.asPoint()])
             shortest_path_lines.append(line)
 
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
-                                                    shortest_path_lines)
+        result_feats = ObjectsConverter.list_of_geometry_to_feats(shortest_path_lines)
 
-        return shortest_path_lines
+        return result_feats
 
     def _set_geometry_to_grid(self):
         # assign geometry to the cell
