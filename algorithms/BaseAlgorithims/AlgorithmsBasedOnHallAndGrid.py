@@ -23,6 +23,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         self.step_of_the_grid = 100  # step of the grid
 
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
+        self.hall.visualize()
         if self.source_list_of_geometry_obstacles is None:
             self.list_of_obstacles_geometry = self.hall.create_list_of_obstacles(self.obstacles, self.project)
         else:
@@ -67,6 +68,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
             coor_column = 0
             coor_row += 1
 
+        grid.visualize(self.project)
         return grid
 
     def _get_shorter_path(self, feats, increase_points=0):

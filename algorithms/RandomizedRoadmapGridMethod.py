@@ -152,7 +152,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
 
         self.debuglog.info("get_pre_final_path")
 
-        self.final_path_feats = self.__get_shorter_path(self.final_path_feats, 2)
+        # self.final_path_feats = self.__get_shorter_path(self.final_path_feats, 2)
 
         self.debuglog.info("get_final_path")
 
@@ -182,8 +182,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.77047669544139, 47.27478345534227))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.774777318837074, 47.27599603712678))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.77652343660676, 47.27093552914612))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.78315221702869, 47.27150948452412))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
     obstacles = QgsVectorLayer(path)

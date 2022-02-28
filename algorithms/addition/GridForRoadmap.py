@@ -62,9 +62,8 @@ class GridForRoadmap:
                 list_of_cells.append(self.cells[i][k])
 
         polygon = QgsGeometry.fromPolygonXY([[QgsPointXY(1, 1), QgsPointXY(2, 2), QgsPointXY(2, 1)]])
-        for i in range(0, len(list_of_cells)):
+        for i in range(len(list_of_cells)):
             if list_of_cells[i].geometry is not None and not list_of_cells[i].geometry.isNull():
-                a = list_of_cells[i].geometry
                 polygon.addPartGeometry(list_of_cells[i].geometry)
         polygon.deletePart(0)
         return polygon

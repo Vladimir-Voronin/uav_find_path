@@ -13,6 +13,14 @@ from algorithms.addition.GeometryPointExpand import GeometryPointExpand
 from algorithms.addition.Visualizer import Visualizer
 
 
+class TreeNode:
+    def __init__(self, point_expand, prev_node, prev_line):
+        self.point_expand = point_expand
+        self.prev_line = prev_line
+        self.prev_node = prev_node
+        self.distance_to_target = None
+
+
 class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         super().__init__(findpathdata, debuglog)
@@ -21,9 +29,21 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         cell_start = self.grid.difine_point(self.starting_point_geometry)
         self.start_point_expand = GeometryPointExpand(self.starting_point_geometry, cell_start.n_row,
                                                       cell_start.n_column)
-        cell_target = self.grid.difine_point(self.starting_point_geometry)
+        cell_target = self.grid.difine_point(self.target_point_geometry)
         self.target_point_expand = GeometryPointExpand(self.target_point_geometry, cell_target.n_row,
                                                        cell_target.n_column)
+
+        self.point_analysis_list = []
+        self.list_of_treenodes = []
+        self.max_active_nodes_in_list = 10
+        self.attempts_to_each_node = 2
+        self.tree_reached_target = False
+        self.last_node = None
+        self.list_of_path = []
+
+        # debug
+        self.time_of_work_starts = time.perf_counter()
+        self.time_stop = 10  # seconds to drop the algorithm
 
     def __create_grid(self):
         self.debuglog.start_block("create grid")
@@ -41,23 +61,38 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         super()._set_geometry_to_grid()
         self.debuglog.end_block("set geometry to grid")
 
-    def __get_point_ahead(self, source_point_expand, target_point_expand):
+    def __find_path_in_tree(self):
+        node = self.last_node
+        while node is not None:
+            self.list_of_path.append(node.prev_line)
+            node = node.prev_node
+
+        list_of_lines = [x for x in self.list_of_path]
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                    list_of_lines)
+
+    def __get_point_ahead(self, source_point_node):
+        source_point_expand = source_point_node.point_expand
         source_point = source_point_expand.point.asPoint()
-        target_point = target_point_expand.point.asPoint()
+        target_point = self.target_point_expand.point.asPoint()
         x_full_difference = target_point.x() - source_point.x()
         y_full_difference = target_point.y() - source_point.y()
-        distance_between_points = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
+        distance_to_target_point = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
 
-        if distance_between_points < self.max_search_distance:
+        if distance_to_target_point < self.max_search_distance:
             line = QgsGeometry.fromPolylineXY([source_point,
                                                target_point])
-            geometry = self.grid.get_multipolygon_by_points(source_point, target_point_expand)
+            geometry = self.grid.get_multipolygon_by_points(source_point_expand, self.target_point_expand)
             if geometry.distance(line):
                 # Add logic
-                return line
+                self.tree_reached_target = True
+                node = TreeNode(self.target_point_expand, source_point_node, line)
+                node.distance_to_target = distance_to_target_point
+                self.last_node = node
+                return None
 
-        x_unit = x_full_difference / distance_between_points
-        y_unit = y_full_difference / distance_between_points
+        x_unit = x_full_difference / distance_to_target_point
+        y_unit = y_full_difference / distance_to_target_point
         angle = random.randint(-90, 90)
         rad = math.radians(angle)
         length = random.randint(1, self.max_search_distance)
@@ -75,39 +110,71 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         new_point = QgsGeometry.fromPointXY(
             QgsPointXY(source_point.x() + Xp, source_point.y() + Yp))
 
-        cell_for_new_point = self.grid.difine_point(self.starting_point_geometry)
+        cell_for_new_point = self.grid.difine_point(new_point)
         if cell_for_new_point is None:
             return None
 
         new_point_expand = GeometryPointExpand(new_point, cell_for_new_point.n_row,
                                                cell_for_new_point.n_column)
 
-        geometry = self.grid.get_multipolygon_by_points(new_point_expand, target_point_expand)
+        geometry = self.grid.get_multipolygon_by_points(source_point_expand, new_point_expand)
+        if geometry is None:
+            return None
 
         # Perhaps it will be faster if we skip this check (check for a line at once)
         if geometry.distance(new_point):
             line = QgsGeometry.fromPolylineXY([source_point,
                                                new_point.asPoint()])
             if geometry.distance(line):
-                # Add logic
-                return line
-        return None
+                node = TreeNode(new_point_expand, source_point_node, line)
+                node.distance_to_target = distance_to_target_point
+                self.list_of_treenodes.append(node)
+
+    def __one_step_of_the_loop(self):
+        copy_list = self.point_analysis_list.copy()
+        for node in copy_list:
+            for i in range(self.attempts_to_each_node):
+                self.__get_point_ahead(node)
+                if self.tree_reached_target:
+                    break
+
+    def __handle_list_of_nodes(self):
+        if len(self.list_of_treenodes) > self.max_active_nodes_in_list:
+            self.list_of_treenodes.sort(key=lambda x: x.distance_to_target)
+            self.point_analysis_list = self.list_of_treenodes[0:self.max_active_nodes_in_list]
+
+    def __start_searching(self):
+        start_point_node = TreeNode(self.start_point_expand, None, None)
+
+        source_point = self.start_point_expand.point.asPoint()
+        target_point = self.target_point_expand.point.asPoint()
+        x_full_difference = target_point.x() - source_point.x()
+        y_full_difference = target_point.y() - source_point.y()
+        distance_between_points = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
+        start_point_node.distance_to_target = distance_between_points
+
+        self.list_of_treenodes.append(start_point_node)
+        self.point_analysis_list.append(start_point_node)
+        a = time.perf_counter() - self.time_of_work_starts
+        while time.perf_counter() - self.time_of_work_starts < self.time_stop:
+            self.__handle_list_of_nodes()
+            self.__one_step_of_the_loop()
+            if self.tree_reached_target:
+                self.__find_path_in_tree()
+                break
+        list_of_lines = [x.prev_line for x in self.list_of_treenodes]
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                    list_of_lines)
 
     def run(self):
         self._set_geometry_to_grid()
-
-        list_of_lines_to_check = []
         my_time = time.perf_counter()
-        for i in range(10000):
-            p = self.__get_point_ahead(self.start_point_expand, self.target_point_expand)
-            if p is not None:
-                list_of_lines_to_check.append(p)
+        self.__start_searching()
+        self.__find_path_in_tree()
         my_time = time.perf_counter() - my_time
-
-        print(list_of_lines_to_check)
         print(my_time)
-        print(len(list_of_lines_to_check))
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", list_of_lines_to_check)
+        # Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+        #                                             list_of_lines_to_check)
 
     def visualise(self):
         pass
@@ -120,8 +187,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7658939,47.2779548))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.764336, 47.273276))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7855451, 47.2675591))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.78952400, 47.27439349))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
     obstacles = QgsVectorLayer(path)

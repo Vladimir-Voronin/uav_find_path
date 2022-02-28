@@ -94,7 +94,7 @@ class Hall:
 
     def visualize(self):
         # region Визуализация коридора, УДАЛИТЬ ПОЗЖЕ
-        layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\grid.shp")
+        layer = QgsVectorLayer(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\hall.shp")
         layer.dataProvider().truncate()
         feats = []
         # for i in [point1, point2, point4, point3]:
