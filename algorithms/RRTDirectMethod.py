@@ -1,5 +1,6 @@
 import math
 import random
+import time
 from abc import ABC
 
 from qgis.core import *
@@ -82,6 +83,8 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                                                cell_for_new_point.n_column)
 
         geometry = self.grid.get_multipolygon_by_points(new_point_expand, target_point_expand)
+
+        # Perhaps it will be faster if we skip this check (check for a line at once)
         if geometry.distance(new_point):
             line = QgsGeometry.fromPolylineXY([source_point,
                                                new_point.asPoint()])
@@ -94,12 +97,15 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self._set_geometry_to_grid()
 
         list_of_lines_to_check = []
-        for i in range(100):
+        my_time = time.perf_counter()
+        for i in range(10000):
             p = self.__get_point_ahead(self.start_point_expand, self.target_point_expand)
             if p is not None:
                 list_of_lines_to_check.append(p)
-        print(list_of_lines_to_check)
+        my_time = time.perf_counter() - my_time
 
+        print(list_of_lines_to_check)
+        print(my_time)
         print(len(list_of_lines_to_check))
         Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", list_of_lines_to_check)
 
