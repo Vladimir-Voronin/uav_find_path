@@ -20,7 +20,8 @@ import math
 
 class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
-        super().__init__(findpathdata, debuglog)
+        hall_width = 150
+        super().__init__(findpathdata, debuglog, hall_width)
         self.debuglog.info("Create new class")
         self.debuglog.info(f"There are {len(self.list_of_obstacles_geometry)} objects in list_of_obstacles_geometry")
         self.random_points_feats = None
@@ -152,11 +153,12 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
 
         self.debuglog.info("get_pre_final_path")
 
-        # self.final_path_feats = self.__get_shorter_path(self.final_path_feats, 2)
+        self.final_path_feats = self.__get_shorter_path(self.final_path_feats, 2)
 
         self.debuglog.info("get_final_path")
 
-        self.visualize()
+        if __name__ == '__main__':
+            self.visualize()
 
     def visualize(self):
         if self.create_debug_layers:
@@ -182,8 +184,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.77652343660676, 47.27093552914612))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.78315221702869, 47.27150948452412))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7692153, 47.2739097))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7750523, 47.2761893))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
     obstacles = QgsVectorLayer(path)
