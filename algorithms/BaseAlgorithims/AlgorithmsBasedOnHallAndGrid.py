@@ -15,14 +15,15 @@ import math
 
 
 class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
-    def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
+    def __init__(self, findpathdata: FindPathData, debuglog: DebugLog, hall_width=150):
         super().__init__(findpathdata, debuglog)
         # constants
         self.const_square_meters = 400
         self.const_sight_of_points = 12
         self.step_of_the_grid = 100  # step of the grid
 
-        self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y())
+        self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y(),
+                         hall_width)
         self.hall.visualize()
         if self.source_list_of_geometry_obstacles is None:
             self.list_of_obstacles_geometry = self.hall.create_list_of_obstacles(self.obstacles, self.project)
@@ -71,7 +72,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         grid.visualize(self.project)
         return grid
 
-    def _get_shorter_path(self, feats, increase_points=0):
+    def _get_shorter_path(self, feats, increase_points=0, depth=30):
         # get shorter path
         min_path_geometry = [i.geometry() for i in feats]
         points = [i.asPolyline()[0] for i in min_path_geometry]
@@ -96,21 +97,22 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
             points_extended.append(point_extand)
 
         list_min_path_indexes = [0]
-        update_index = 1
+        update_index = 0
         i = 0
-
-        depth = 30
         while i < len(points_extended):
-            for k in range(i + 1, min(i + 1 + depth, len(points_extended))):
+            for k in range(i + 2, min(i + 2 + depth, len(points_extended))):
                 line = QgsGeometry.fromPolylineXY([points_extended[i].point.asPoint(),
                                                    points_extended[k].point.asPoint()])
 
                 geometry_obstacles = self.grid.get_multipolygon_by_points(points_extended[i],
                                                                           points_extended[k])
 
-                if geometry_obstacles.distance(line) > 0:
+                if geometry_obstacles.isNull() or geometry_obstacles.distance(line) > 0:
                     update_index = k
                 else:
+                    if i == update_index:
+                        i += 1
+                        update_index += 1
                     list_min_path_indexes.append(update_index)
                     i = update_index
                     i -= 1
