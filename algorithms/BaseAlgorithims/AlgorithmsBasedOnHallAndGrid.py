@@ -42,7 +42,9 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
 
         number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step_of_the_grid)
         number_of_columns = math.ceil((self.right_x - self.left_x) / self.step_of_the_grid)
-        grid = GridForRoadmap(number_of_rows, number_of_columns)
+
+        grid = GridForRoadmap(number_of_rows, number_of_columns, self.step_of_the_grid, self.top_y, self.left_x)
+
         print("rows: ", number_of_columns)
         print("columns: ", number_of_columns)
         lx = self.left_x
