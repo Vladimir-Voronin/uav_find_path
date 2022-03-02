@@ -23,6 +23,7 @@ class TreeNode:
 
 
 class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
+
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 200
         super().__init__(findpathdata, debuglog, hall_width)
@@ -37,7 +38,7 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
         self.point_analysis_list = []
         self.list_of_treenodes = []
-        self.max_active_nodes_in_list = 15
+        self.max_active_nodes_in_list = 25
         self.attempts_to_each_node = 3
         self.tree_reached_target = False
         self.last_node = None
@@ -162,13 +163,25 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                 break
 
     def run(self):
+        debug_log.start_block("set geometry to the grid block")
         self._set_geometry_to_grid()
+        debug_log.end_block("set geometry to the grid block")
+
+        debug_log.start_block("start searching block")
         self.__start_searching()
+        debug_log.end_block("start searching block")
+
+        debug_log.start_block("find pre min path")
         self.__find_path_in_tree()
+        debug_log.end_block("find pre min path")
+
+        debug_log.start_block("get final path")
         len(self.list_of_path)
         path_feats = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
         path_feats.reverse()
         self.final_path_feats = self.__get_shorter_path(path_feats, 1)
+        debug_log.end_block("get final path")
+
         if __name__ == '__main__':
             self.visualise()
 
@@ -181,7 +194,6 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                                                           min_short_feats)
         Visualizer.create_and_add_new_final_path(self.project, self.path_to_save_layers, self.final_path_feats)
         if __name__ == '__main__':
-
             Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_tree.shp",
                                                         tree_to_visualize)
 
@@ -200,8 +212,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7855451, 47.2675591))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7789776, 47.2742249))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.786790, 47.274523))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.785310, 47.269818))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
@@ -212,5 +224,6 @@ if __name__ == '__main__':
         debug_log = DebugLog()
         check = RRTDirectMethod(find_path_data, debug_log)
         check.run()
+        print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)

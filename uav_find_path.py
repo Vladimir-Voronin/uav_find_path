@@ -49,7 +49,7 @@ from .uav_find_path_dialog import UAVFindPathDialog
 
 import time
 
-from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod
+from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod, RRTDirectMethod
 
 
 class UAVFindPath:
@@ -289,6 +289,7 @@ class UAVFindPath:
 
             current_algorithm = RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod(find_path_data, debug_log)
             current_algorithm.run()
+            current_algorithm.visualize()
             self.dlg.textEdit_debug_info.setText(current_algorithm.debuglog.get_info())
             # clean resources
             self.update_combo_box_layers()
@@ -312,7 +313,8 @@ class UAVFindPath:
         self.project = QgsProject.instance()
 
         # dict of algorithms
-        algorithm_dict = {'RandomizedRoadmapMethod': RandomizedRoadmapMethod.RandomizedRoadmapMethod}
+        algorithm_dict = {'Randomized Roadmap Method': RandomizedRoadmapMethod.RandomizedRoadmapMethod,
+                          'RRT method': RRTDirectMethod.RRTDirectMethod}
         # add layers to "select layer"
         self.update_combo_box_layers()
 
