@@ -57,8 +57,8 @@ class GridForRoadmap:
         point_y = point.y()
         for row in self.cells:
             for cell in row:
-                if cell.point_lx_ty.x() > point_x and point_x < cell.point_rx_ty.x():
-                    if cell.point_rx_by.y() > point_y and point_y < cell.point_lx_ty.y():
+                if cell.point_lx_ty.x() <= point_x <= cell.point_rx_ty.x():
+                    if cell.point_rx_by.y() <= point_y <= cell.point_lx_ty.y():
                         return GeometryPointExpand(point, cell.n_row, cell.n_column)
 
     def get_multipolygon_by_points(self, point1, point2):
