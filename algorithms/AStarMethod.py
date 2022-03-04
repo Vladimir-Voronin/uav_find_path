@@ -88,7 +88,8 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                         point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
                     point_expand = self.grid.get_point_expand_by_point(point)
                     if (x == 1 or x == -1) and (y == 1 or y == -1):
-                        new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point, node,
+                        new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
+                                        node,
                                         node.coordinate_int_x + x, node.coordinate_int_y + y)
                     else:
                         new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
@@ -156,9 +157,7 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.__find_path()
         debug_log.end_block("find path block")
 
-        debug_log.start_block("get final path block")
         self.final_path = self.__get_shorter_path(self.list_of_path)
-        debug_log.end_block("get final path block")
         self.visualise()
 
     def visualise(self):
@@ -189,8 +188,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.786790, 47.274523))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7772201, 47.2730256))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7867695,47.2744990))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7794512, 47.2741065))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

@@ -25,7 +25,7 @@ class Node:
 
 class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
-        hall_width = 200
+        hall_width = 100
         super().__init__(findpathdata, debuglog, hall_width)
 
         cell_target = self.grid.difine_point(self.target_point_geometry)
@@ -82,11 +82,13 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                 if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
                         point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
                     point_expand = self.grid.get_point_expand_by_point(point)
+                    if point_expand is None:
+                        return None
                     if (x == 1 or x == -1) and (y == 1 or y == -1):
-                        new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point, node,
+                        new_node = Node(point_expand, node.g + self.point_search_distance_diagonal, node,
                                         node.coordinate_int_x + x, node.coordinate_int_y + y)
                     else:
-                        new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
+                        new_node = Node(point_expand, node.g + self.point_search_distance, node,
                                         node.coordinate_int_x + x, node.coordinate_int_y + y)
                     self.open_list.append(new_node)
                     self.all_nodes_list.append(new_node)
@@ -120,10 +122,15 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         start_node = Node(start_point_expand, 0, None, 0, 0)
         self.open_list.append(start_node)
         self.all_nodes_list.append(start_node)
+        i = 0
         while True:
             if not len(self.open_list):
                 raise Exception("Path wasn`t found")
             current_node = self.__get_min_weight_node_in_open_list()
+            if current_node.point_expand is None:
+                self.open_list.remove(current_node)
+                self.closed_list.append(current_node)
+                continue
 
             if self.__check_distance_to_target_point(current_node) < self.point_search_distance_diagonal:
                 line = QgsGeometry.fromPolylineXY([current_node.point_expand.point,
@@ -137,6 +144,11 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
             self.closed_list.append(current_node)
 
             self.__add_new_neighbors(current_node)
+            i += 1
+            if i % 200 == 0:
+                points_geom = [QgsGeometry.fromPointXY(x.point_expand.point) for x in self.all_nodes_list]
+                Visualizer.update_layer_by_geometry_objects(
+                    r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp", points_geom)
 
     def run(self):
         debug_log.start_block("set geometry to the grid block")
@@ -184,8 +196,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.786790, 47.274523))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7772201, 47.2730256))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7841907, 47.2721542))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7851263, 47.2716111))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

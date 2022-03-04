@@ -212,8 +212,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.786790, 47.274523))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.785310, 47.269818))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7841907, 47.2721542))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7870167, 47.2731084))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
