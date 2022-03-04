@@ -15,11 +15,11 @@ from algorithms.addition.Visualizer import Visualizer
 
 
 class Node:
-    def __init__(self, point, g, target_point, prev_node, coordinate_int_x, coordinate_int_y):
-        self.point = point
+    def __init__(self, point_expand, g, target_point, prev_node, coordinate_int_x, coordinate_int_y):
+        self.point_expand = point_expand
         self.g = g
-        x_full_difference = target_point.x() - point.x()
-        y_full_difference = target_point.y() - point.y()
+        x_full_difference = target_point.x() - point_expand.point.x()
+        y_full_difference = target_point.y() - point_expand.point.y()
         self.h = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
         self.sum = self.g + self.h
         self.prev_node = prev_node
@@ -31,10 +31,21 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 200
         super().__init__(findpathdata, debuglog, hall_width)
-        self.point_search_distance = 3
+
+        cell_target = self.grid.difine_point(self.target_point_geometry)
+        self.target_point_expand = GeometryPointExpand(self.target_point, cell_target.n_row,
+                                                       cell_target.n_column)
+
+        self.point_search_distance = 2
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
         self.open_list = []
         self.closed_list = []
+        self.all_nodes_list = []
+        self.last_node = None
+
+        self.list_of_path = []
+        self.final_path = []
+        self.is_succes = False
 
     def __create_grid(self):
         self.debuglog.start_block("create grid")
@@ -53,32 +64,84 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.debuglog.end_block("set geometry to grid")
 
     def __check_distance_to_target_point(self, node):
-        x_full_difference = self.target_point.x() - node.point.x()
-        y_full_difference = self.target_point.y() - node.point.y()
+        x_full_difference = self.target_point.x() - node.point_expand.point.x()
+        y_full_difference = self.target_point.y() - node.point_expand.point.y()
         return math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
 
-    def __add_new_neighbor(self, node):
-        pass
+    def __new_neighbor(self, node, x, y):
+        new_x = node.coordinate_int_x + x
+        new_y = node.coordinate_int_y + y
+
+        match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
+                       self.all_nodes_list)
+        first = next(match, None)
+
+        if not first:
+
+            point = QgsPointXY(node.point_expand.point.x() + x * self.point_search_distance,
+                               node.point_expand.point.y() + y * self.point_search_distance)
+            point_geometry = QgsGeometry.fromPointXY(point)
+
+            cell = self.grid.define_point_using_math_search(point)
+            if cell is not None:
+                if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
+                        point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
+                    point_expand = self.grid.get_point_expand_by_point(point)
+                    if (x == 1 or x == -1) and (y == 1 or y == -1):
+                        new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point, node,
+                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                    else:
+                        new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
+                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                    self.open_list.append(new_node)
+                    self.all_nodes_list.append(new_node)
+
+    def __add_new_neighbors(self, node):
+        self.__new_neighbor(node, 1, 0)
+        self.__new_neighbor(node, 1, 1)
+        self.__new_neighbor(node, 0, 1)
+        self.__new_neighbor(node, -1, 1)
+        self.__new_neighbor(node, -1, 0)
+        self.__new_neighbor(node, -1, -1)
+        self.__new_neighbor(node, 0, -1)
+        self.__new_neighbor(node, 1, -1)
 
     def __get_min_weight_node_in_open_list(self):
-        pass
+        return min(self.open_list, key=lambda p: p.sum)
+
+    def __find_path(self):
+        node = self.last_node
+        while node is not None:
+            prev_node = node.prev_node
+            if prev_node is not None:
+                line = QgsGeometry.fromPolylineXY([node.prev_node.point_expand.point,
+                                                   node.point_expand.point])
+                self.list_of_path.append(line)
+            node = node.prev_node
+        self.list_of_path.reverse()
 
     def __start_searching(self):
-        start_node = Node(self.starting_point, 0, self.target_point, None, 0, 0)
+        start_point_expand = self.grid.get_point_expand_by_point(self.starting_point)
+        start_node = Node(start_point_expand, 0, self.target_point, None, 0, 0)
         self.open_list.append(start_node)
+        self.all_nodes_list.append(start_node)
         while True:
+            if not len(self.open_list):
+                raise Exception("Path wasn`t found")
             current_node = self.__get_min_weight_node_in_open_list()
+
             if self.__check_distance_to_target_point(current_node) < self.point_search_distance_diagonal:
-                line = QgsGeometry.fromPolylineXY([current_node,
+                line = QgsGeometry.fromPolylineXY([current_node.point_expand.point,
                                                    self.target_point])
-                geometry = self.grid.get_multipolygon_by_points(source_point_expand, self.target_point_expand)
+                geometry = self.grid.get_multipolygon_by_points(current_node.point_expand, self.target_point_expand)
                 if geometry.distance(line):
-                    # END
+                    self.last_node = Node(self.target_point_expand, 0, self.target_point, current_node, 0, 0)
+                    self.is_succes = True
                     break
             self.open_list.remove(current_node)
             self.closed_list.append(current_node)
-            self.__add_new_neighbor(current_node)
-        pass
+
+            self.__add_new_neighbors(current_node)
 
     def run(self):
         debug_log.start_block("set geometry to the grid block")
@@ -89,8 +152,32 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.__start_searching()
         debug_log.end_block("start searching block")
 
+        debug_log.start_block("find path block")
+        self.__find_path()
+        debug_log.end_block("find path block")
+
+        debug_log.start_block("get final path block")
+        self.final_path = self.__get_shorter_path(self.list_of_path)
+        debug_log.end_block("get final path block")
+        self.visualise()
+
     def visualise(self):
-        pass
+        if self.create_debug_layers:
+            points_feats = ObjectsConverter.list_of_geometry_to_feats(self.all_nodes_list)
+            min_short_feats = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
+            Visualizer.create_and_add_new_default_points(self.project, self.path_to_save_layers,
+                                                         points_feats)
+            Visualizer.create_and_add_new_path_short_tree(self.project, self.path_to_save_layers,
+                                                          min_short_feats)
+        Visualizer.create_and_add_new_final_path(self.project, self.path_to_save_layers, self.final_path)
+        if __name__ == '__main__':
+            points_geom = [QgsGeometry.fromPointXY(x.point_expand.point) for x in self.all_nodes_list]
+            Visualizer.update_layer_by_geometry_objects(
+                r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp", points_geom)
+            Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                        self.list_of_path)
+            Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
+                                                     self.final_path)
 
 
 if __name__ == '__main__':
@@ -103,7 +190,7 @@ if __name__ == '__main__':
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
         point1 = QgsGeometry.fromPointXY(QgsPointXY(39.786790, 47.274523))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.785310, 47.269818))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7772201, 47.2730256))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
