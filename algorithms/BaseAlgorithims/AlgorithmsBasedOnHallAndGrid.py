@@ -43,40 +43,43 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step_of_the_grid)
         number_of_columns = math.ceil((self.right_x - self.left_x) / self.step_of_the_grid)
 
-        grid = GridForRoadmap(number_of_rows, number_of_columns, self.step_of_the_grid, self.top_y, self.left_x)
+        grid = GridForRoadmap(number_of_rows, number_of_columns, self.step_of_the_grid, self.bottom_y, self.left_x)
 
-        print("rows: ", number_of_columns)
+        print("rows: ", number_of_rows)
         print("columns: ", number_of_columns)
         lx = self.left_x
-        ly = self.top_y
+        by = self.bottom_y
         coor_row = 0
         coor_column = 0
         for row in grid.cells:
-            ry = ly - self.step_of_the_grid
-            if ry < self.bottom_y:
-                ry = self.bottom_y
+            ty = by + self.step_of_the_grid
+            if ty > self.top_y:
+                ty = self.top_y
             rx = lx + self.step_of_the_grid
             if rx > self.right_x:
                 rx = self.right_x
             for _ in row:
-                cell = CellOfTheGrid(lx, ly, rx, ry)
+                cell = CellOfTheGrid(lx, by, rx, ty)
                 grid.add_cell_by_coordinates(cell, coor_row, coor_column)
                 lx += self.step_of_the_grid
                 rx += self.step_of_the_grid
                 coor_column += 1
                 if rx > self.right_x:
                     rx = self.right_x
-            ly -= self.step_of_the_grid
+            by += self.step_of_the_grid
             lx = self.left_x
             coor_column = 0
             coor_row += 1
-
         grid.visualize(self.project)
+
         return grid
 
-    def _get_shorter_path(self, feats, increase_points=0, depth=30):
-        # get shorter path
-        min_path_geometry = [i.geometry() for i in feats]
+    def _get_shorter_path(self, feats_or_geometry, increase_points=0, depth=30):
+        if type(feats_or_geometry) == QgsFeature:
+            # get shorter path
+            min_path_geometry = [i.geometry() for i in feats_or_geometry]
+        else:
+            min_path_geometry = feats_or_geometry
         points = [i.asPolyline()[0] for i in min_path_geometry]
         # adding last point
         points.append(min_path_geometry[-1].asPolyline()[1])
@@ -146,5 +149,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         # assign geometry to the cell
         for row in self.grid.cells:
             for cell in row:
-                if cell.borders.distance(self.hall.hall_polygon) == 0:
+                if not cell.borders.intersection(self.hall.hall_polygon).isEmpty():
                     cell.set_geometry(self.list_of_obstacles_geometry)
+
+

@@ -2,13 +2,13 @@ from qgis.core import *
 
 
 class CellOfTheGrid:
-    def __init__(self, lx, ty, rx, by):
-        self.point_lx_ty = QgsPointXY(lx, ty)
-        self.point_rx_ty = QgsPointXY(rx, ty)
-        self.point_rx_by = QgsPointXY(rx, by)
+    def __init__(self, lx, by, rx, ty):
         self.point_lx_by = QgsPointXY(lx, by)
+        self.point_rx_by = QgsPointXY(rx, by)
+        self.point_rx_ty = QgsPointXY(rx, ty)
+        self.point_lx_ty = QgsPointXY(lx, ty)
         self.borders = QgsGeometry.fromPolygonXY(
-            [[self.point_lx_ty, self.point_rx_ty, self.point_rx_by, self.point_lx_by]])
+            [[self.point_lx_by, self.point_rx_by, self.point_rx_ty, self.point_lx_ty]])
         self.myGrid = None
         self.n_row = None
         self.n_column = None

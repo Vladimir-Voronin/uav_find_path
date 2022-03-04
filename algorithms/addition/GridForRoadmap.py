@@ -7,8 +7,11 @@ from algorithms.addition.Visualizer import Visualizer
 
 
 class GridForRoadmap:
-    def __init__(self, row, column):
+    def __init__(self, row, column, step_of_the_grid, bottom_y, left_x):
         self.cells = np.zeros((row, column), dtype=CellOfTheGrid)
+        self.step_of_the_grid = step_of_the_grid
+        self.bottom_y = bottom_y
+        self.left_x = left_x
 
     def add_cell_by_coordinates(self, value, n_row, n_column):
         if isinstance(value, CellOfTheGrid):
@@ -18,6 +21,14 @@ class GridForRoadmap:
             value.n_column = n_column
         else:
             raise Exception("Only <CellOfTheGrid> object can recieved")
+
+    def define_point_using_math_search(self, point):
+        x_shift = int((point.x() - self.left_x) // self.step_of_the_grid)
+        y_shift = int((point.y() - self.bottom_y) // self.step_of_the_grid)
+        if 0 <= x_shift < len(self.cells[0]) and 0 <= y_shift < len(self.cells):
+            return self.cells[y_shift][x_shift]
+
+        return None
 
     def difine_point(self, point):
         for row in self.cells:
@@ -32,9 +43,18 @@ class GridForRoadmap:
                     if cell.geometry is not None:
                         return cell
 
-    def get_point_expand(self, point):
+    def get_point_expand_by_geometry_of_point(self, point):
         point_x = point.asPoint().x()
         point_y = point.asPoint().y()
+        for row in self.cells:
+            for cell in row:
+                if cell.point_lx_ty.x() > point_x and point_x < cell.point_rx_ty.x():
+                    if cell.point_rx_by.y() > point_y and point_y < cell.point_lx_ty.y():
+                        return GeometryPointExpand(point, cell.n_row, cell.n_column)
+
+    def get_point_expand_by_point(self, point):
+        point_x = point.x()
+        point_y = point.y()
         for row in self.cells:
             for cell in row:
                 if cell.point_lx_ty.x() > point_x and point_x < cell.point_rx_ty.x():
