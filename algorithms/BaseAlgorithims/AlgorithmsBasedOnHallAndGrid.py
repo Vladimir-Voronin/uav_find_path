@@ -75,7 +75,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         return grid
 
     def _get_shorter_path(self, feats_or_geometry, increase_points=0, depth=30):
-        if type(feats_or_geometry) == QgsFeature:
+        if type(feats_or_geometry[0]) == QgsFeature:
             # get shorter path
             min_path_geometry = [i.geometry() for i in feats_or_geometry]
         else:
@@ -118,11 +118,14 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
                     if i == update_index:
                         i += 1
                         update_index += 1
-                    list_min_path_indexes.append(update_index)
                     i = update_index
                     i -= 1
                     break
-            i += 1
+            if i == update_index:
+                i += 1
+            else:
+                i = update_index
+            list_min_path_indexes.append(update_index)
 
         if len(points_extended) - 1 != list_min_path_indexes[-1]:
             list_min_path_indexes.append(len(points_extended) - 1)
@@ -151,5 +154,3 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
             for cell in row:
                 if not cell.borders.intersection(self.hall.hall_polygon).isEmpty():
                     cell.set_geometry(self.list_of_obstacles_geometry)
-
-
