@@ -26,6 +26,7 @@ class Node:
         self.prev_node = prev_node
         self.coordinate_int_x = coordinate_int_x
         self.coordinate_int_y = coordinate_int_y
+        self.next_node = None
 
 
 class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm, ABC):
@@ -42,8 +43,10 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
         self.open_list = []
         self.closed_list = []
         self.all_nodes_list = []
+        self.start_node = None
         self.last_node = None
         self.path_by_nodes = []
+        self.__list_after_update = []
 
         self.list_of_path = []
         self.final_path = []
@@ -99,8 +102,114 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
                     self.open_list.append(new_node)
                     self.all_nodes_list.append(new_node)
 
-    def update(self):
-        raise NotImplementedError
+    def __update_new_neighbor(self, node, x, y):
+        new_x = node.coordinate_int_x + x
+        new_y = node.coordinate_int_y + y
+
+        match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
+                       self.all_nodes_list)
+        first = next(match, None)
+
+        if not first:
+
+            point = QgsPointXY(node.point_expand.point.x() + x * self.point_search_distance,
+                               node.point_expand.point.y() + y * self.point_search_distance)
+            point_geometry = QgsGeometry.fromPointXY(point)
+
+            cell = self.grid.define_point_using_math_search(point)
+            if cell is not None:
+                if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
+                        point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
+                    point_expand = self.grid.get_point_expand_by_point(point)
+                    new_node = None
+                    if (x == 1 or x == -1) and (y == 1 or y == -1):
+                        new_node = Node(point_expand, self.point_search_distance_diagonal,
+                                        self.target_point,
+                                        node,
+                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                    else:
+                        new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
+                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                    self.open_list.append(new_node)
+                    self.all_nodes_list.append(new_node)
+
+                    match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
+                                   self.path_by_nodes)
+                    first = next(match, None)
+                    if first:
+                        first.prev_node = new_node
+                        return first
+
+    def __update_search(self, node):
+        is_complete_node = self.__update_new_neighbor(node, 1, 0)
+        if is_complete_node:
+            return is_complete_node
+        is_complete_node = self.__update_new_neighbor(node, 1, 1)
+        if is_complete_node:
+            return is_complete_node
+        is_complete_node = self.__update_new_neighbor(node, 0, 1)
+        if is_complete_node:
+            return is_complete_node
+        is_complete_node = self.__update_new_neighbor(node, -1, 1)
+        if is_complete_node:
+            return is_complete_node
+        is_complete_node = self.__update_new_neighbor(node, -1, 0)
+        if is_complete_node:
+            return is_complete_node
+        is_complete_node = self.__update_new_neighbor(node, -1, -1)
+        if is_complete_node:
+            return is_complete_node
+        is_complete_node = self.__update_new_neighbor(node, 0, -1)
+        if is_complete_node:
+            return is_complete_node
+        is_complete_node = self.__update_new_neighbor(node, 1, -1)
+        if is_complete_node:
+            return is_complete_node
+
+    def __update_get_node_to_analys_(self):
+        self.__list_after_update = []
+        node = self.start_node
+        x_list = [i.coordinate_int_x for i in self.path_by_nodes]
+        y_list = [i.coordinate_int_y for i in self.path_by_nodes]
+        while node.next_node:
+            x = node.next_node.coordinate_int_x
+            y = node.next_node.coordinate_int_y
+            if x in x_list and y in y_list:
+                pass
+            else:
+                self.all_nodes_list = [self.path_by_nodes[i]]
+                self.open_list = [self.path_by_nodes[i]]
+                is_complete = None
+                while not is_complete:
+                    is_complete = self.__update_search(self.path_by_nodes[i])
+                a = node
+                while a != is_complete:
+                    self.path_by_nodes.append(a)
+                    a = a.next_node
+                self.__update_get_node_to_analys_()
+            node = node.next_node
+        return True, True
+
+    def __update_delete_intersects_nodes(self):
+        for node in self.path_by_nodes:
+            cell = self.grid.define_point_using_math_search(node.point_expand.point)
+            point_geometry = QgsGeometry.fromPointXY(node.point_expand.point)
+            if cell.geometry is not None:
+                if cell.geometry.distance(point_geometry) > self.point_search_distance or cell.geometry.isNull():
+                    pass
+                else:
+                    self.path_by_nodes.remove(node)
+
+    def update(self, list_of_geometry_obstacles):
+        # Rebuild grid with new geometry
+        self.list_of_obstacles_geometry = self.hall.create_list_of_polygons_by_source_geometry(
+            list_of_geometry_obstacles)
+        self.grid = self._create_grid()
+
+        self.__update_delete_intersects_nodes()
+
+        self.__update_get_node_to_analys_()
+        self.visualise()
 
     def get_updated_path(self):
         raise NotImplementedError
@@ -127,15 +236,16 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
                 line = QgsGeometry.fromPolylineXY([node.prev_node.point_expand.point,
                                                    node.point_expand.point])
                 self.list_of_path.append(line)
+                prev_node.next_node = node
             node = node.prev_node
         self.list_of_path.reverse()
         self.path_by_nodes.reverse()
 
     def __start_searching(self):
         start_point_expand = self.grid.get_point_expand_by_point(self.starting_point)
-        start_node = Node(start_point_expand, 0, self.target_point, None, 0, 0)
-        self.open_list.append(start_node)
-        self.all_nodes_list.append(start_node)
+        self.start_node = Node(start_point_expand, 0, self.target_point, None, 0, 0)
+        self.open_list.append(self.start_node)
+        self.all_nodes_list.append(self.start_node)
         while True:
             if not len(self.open_list):
                 raise Exception("Path wasn`t found")
@@ -198,7 +308,7 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7867695,47.2744990))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7867695, 47.2744990))
         point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7794512, 47.2741065))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
@@ -210,6 +320,8 @@ if __name__ == '__main__':
         debug_log = DebugLog()
         check = DStarMethod(find_path_data, debug_log)
         check.run()
+
         print(debug_log.get_info())
+        check.update(source_list_of_geometry_obstacles)
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)
