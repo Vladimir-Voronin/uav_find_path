@@ -43,6 +43,7 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
         self.open_list = []
         self.closed_list = []
         self.all_nodes_list = []
+        self.all_nodes_list_coor = []
         self.start_node = None
         self.last_node = None
         self.path_by_nodes = []
@@ -101,16 +102,13 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
                                         node.coordinate_int_x + x, node.coordinate_int_y + y)
                     self.open_list.append(new_node)
                     self.all_nodes_list.append(new_node)
+                    self.all_nodes_list_coor.append([new_x, new_y])
 
     def __update_new_neighbor(self, node, x, y):
         new_x = node.coordinate_int_x + x
         new_y = node.coordinate_int_y + y
 
-        match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
-                       self.all_nodes_list)
-        first = next(match, None)
-
-        if not first:
+        if not [new_x, new_y] in self.all_nodes_list_coor:
 
             point = QgsPointXY(node.point_expand.point.x() + x * self.point_search_distance,
                                node.point_expand.point.y() + y * self.point_search_distance)
@@ -123,20 +121,19 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
                     point_expand = self.grid.get_point_expand_by_point(point)
                     new_node = None
                     if (x == 1 or x == -1) and (y == 1 or y == -1):
-                        new_node = Node(point_expand, self.point_search_distance_diagonal,
-                                        self.target_point,
-                                        node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                        new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point, node,
+                                        new_x, new_y)
                     else:
-                        new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                        new_node = Node(point_expand, self.point_search_distance, self.target_point, node, new_x, new_y)
                     self.open_list.append(new_node)
                     self.all_nodes_list.append(new_node)
+                    self.all_nodes_list_coor.append([new_x, new_y])
 
-                    match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
-                                   self.path_by_nodes)
-                    first = next(match, None)
-                    if first:
+                    if [new_x, new_y] in self.all_nodes_list_coor:
+                        match = filter(
+                            lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
+                            self.path_by_nodes)
+                        first = next(match, None)
                         first.prev_node = new_node
                         return first
 
@@ -246,6 +243,7 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
         self.start_node = Node(start_point_expand, 0, self.target_point, None, 0, 0)
         self.open_list.append(self.start_node)
         self.all_nodes_list.append(self.start_node)
+        self.all_nodes_list_coor.append([0, 0])
         while True:
             if not len(self.open_list):
                 raise Exception("Path wasn`t found")

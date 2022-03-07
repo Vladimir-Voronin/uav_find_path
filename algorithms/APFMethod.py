@@ -15,13 +15,15 @@ from algorithms.addition.Visualizer import Visualizer
 
 
 class NodeAPF:
-    def __init__(self, point):
-        self.point = point
+    def __init__(self, point_expand, coordinate_int_x, coordinate_int_y):
+        self.point_expand = point_expand
+        self.coordinate_int_x = coordinate_int_x
+        self.coordinate_int_y = coordinate_int_y
 
 
 class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
-        hall_width = 150
+        hall_width = 50
         super().__init__(findpathdata, debuglog, hall_width)
 
         cell_target = self.grid.difine_point(self.target_point_geometry)
@@ -33,6 +35,7 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.open_list = []
         self.closed_list = []
         self.all_nodes_list = []
+        self.all_nodes_list_coor = []
         self.last_node = None
 
         self.list_of_path = []
@@ -60,15 +63,67 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         y_full_difference = self.target_point.y() - node.point_expand.point.y()
         return math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
 
+    def __new_neighbor(self, node, x, y):
+        new_x = node.coordinate_int_x + x
+        new_y = node.coordinate_int_y + y
+        # match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
+        #                self.all_nodes_list)
+        # first = next(match, None)
+
+        if not [new_x, new_y] in self.all_nodes_list_coor:
+            point = QgsPointXY(node.point_expand.point.x() + x * self.point_search_distance,
+                               node.point_expand.point.y() + y * self.point_search_distance)
+            point_geometry = QgsGeometry.fromPointXY(point)
+
+            cell = self.grid.define_point_using_math_search(point)
+            if cell is not None:
+                if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
+                        point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
+                    point_expand = self.grid.get_point_expand_by_point(point)
+
+                    if (x == 1 or x == -1) and (y == 1 or y == -1):
+                        new_node = NodeAPF(point_expand, new_x, new_y)
+                    else:
+                        new_node = NodeAPF(point_expand, new_x, new_y)
+                    self.open_list.append(new_node)
+                    self.all_nodes_list.append(new_node)
+                    self.all_nodes_list_coor.append([new_x, new_y])
+
+    def __add_new_neighbors_to_surface(self, node):
+        self.__new_neighbor(node, 1, 0)
+        self.__new_neighbor(node, 1, 1)
+        self.__new_neighbor(node, 0, 1)
+        self.__new_neighbor(node, -1, 1)
+        self.__new_neighbor(node, -1, 0)
+        self.__new_neighbor(node, -1, -1)
+        self.__new_neighbor(node, 0, -1)
+        self.__new_neighbor(node, 1, -1)
+
     def __create_points_surface(self):
-        start_point = NodeAPF(self.starting_point)
-        self.open_list.append(start_point)
+        start_point_expand = self.grid.get_point_expand_by_point(self.starting_point)
+        start_node = NodeAPF(start_point_expand, 0, 0)
+        self.open_list.append(start_node)
+        self.all_nodes_list.append(start_node)
+        self.all_nodes_list_coor.append([0, 0])
         while len(self.open_list) != 0:
+            current_node = self.open_list[0]
+            self.open_list.remove(current_node)
+            self.closed_list.append(current_node)
 
-
+            self.__add_new_neighbors_to_surface(current_node)
 
     def run(self):
+        debug_log.start_block("set geometry to the grid block")
+        self._set_geometry_to_grid()
+        debug_log.end_block("set geometry to the grid block")
+        my_time = time.perf_counter()
         self.__create_points_surface()
+        my_time = time.perf_counter() - my_time
+        print(my_time)
+        points_geom = [QgsGeometry.fromPointXY(x.point_expand.point) for x in self.all_nodes_list]
+        Visualizer.update_layer_by_geometry_objects(
+            r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp", points_geom)
+
         self.final_path = self.__get_shorter_path(self.list_of_path)
         self.visualise()
 
@@ -100,8 +155,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7867695,47.2744990))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7794512, 47.2741065))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7867695, 47.2744990))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.78598251, 47.27424235))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
@@ -110,7 +165,8 @@ if __name__ == '__main__':
                                       False,
                                       source_list_of_geometry_obstacles)
         debug_log = DebugLog()
-        check = AStarMethod(find_path_data, debug_log)
+        check = APFMethod(find_path_data, debug_log)
+        my_time_full = 0
         check.run()
         print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n

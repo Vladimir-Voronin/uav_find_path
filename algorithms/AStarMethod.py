@@ -41,6 +41,7 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.open_list = []
         self.closed_list = []
         self.all_nodes_list = []
+        self.all_nodes_list_coor = []
         self.last_node = None
 
         self.list_of_path = []
@@ -72,11 +73,7 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         new_x = node.coordinate_int_x + x
         new_y = node.coordinate_int_y + y
 
-        match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
-                       self.all_nodes_list)
-        first = next(match, None)
-
-        if not first:
+        if not [new_x, new_y] in self.all_nodes_list_coor:
 
             point = QgsPointXY(node.point_expand.point.x() + x * self.point_search_distance,
                                node.point_expand.point.y() + y * self.point_search_distance)
@@ -89,13 +86,13 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                     point_expand = self.grid.get_point_expand_by_point(point)
                     if (x == 1 or x == -1) and (y == 1 or y == -1):
                         new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
-                                        node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                                        node, new_x, new_y)
                     else:
                         new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                                        new_x, new_y)
                     self.open_list.append(new_node)
                     self.all_nodes_list.append(new_node)
+                    self.all_nodes_list_coor.append([new_x, new_y])
 
     def __add_new_neighbors(self, node):
         self.__new_neighbor(node, 1, 0)
@@ -126,6 +123,7 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         start_node = Node(start_point_expand, 0, self.target_point, None, 0, 0)
         self.open_list.append(start_node)
         self.all_nodes_list.append(start_node)
+        self.all_nodes_list_coor.append([0, 0])
         while True:
             if not len(self.open_list):
                 raise Exception("Path wasn`t found")

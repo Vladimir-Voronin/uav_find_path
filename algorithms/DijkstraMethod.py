@@ -37,6 +37,7 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.open_list = []
         self.closed_list = []
         self.all_nodes_list = []
+        self.all_nodes_list_coor = []
         self.last_node = None
 
         self.list_of_path = []
@@ -68,11 +69,7 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         new_x = node.coordinate_int_x + x
         new_y = node.coordinate_int_y + y
 
-        match = filter(lambda node_: node_.coordinate_int_x == new_x and node_.coordinate_int_y == new_y,
-                       self.all_nodes_list)
-        first = next(match, None)
-
-        if not first:
+        if not [new_x, new_y] in self.all_nodes_list_coor:
             point = QgsPointXY(node.point_expand.point.x() + x * self.point_search_distance,
                                node.point_expand.point.y() + y * self.point_search_distance)
             point_geometry = QgsGeometry.fromPointXY(point)
@@ -85,13 +82,12 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                     if point_expand is None:
                         return None
                     if (x == 1 or x == -1) and (y == 1 or y == -1):
-                        new_node = Node(point_expand, node.g + self.point_search_distance_diagonal, node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                        new_node = Node(point_expand, node.g + self.point_search_distance_diagonal, node, new_x, new_y)
                     else:
-                        new_node = Node(point_expand, node.g + self.point_search_distance, node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
+                        new_node = Node(point_expand, node.g + self.point_search_distance, node, new_x, new_y)
                     self.open_list.append(new_node)
                     self.all_nodes_list.append(new_node)
+                    self.all_nodes_list_coor.append([new_x, new_y])
 
     def __add_new_neighbors(self, node):
         self.__new_neighbor(node, 1, 0)
@@ -122,6 +118,7 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         start_node = Node(start_point_expand, 0, None, 0, 0)
         self.open_list.append(start_node)
         self.all_nodes_list.append(start_node)
+        self.all_nodes_list_coor.append([0, 0])
         i = 0
         while True:
             if not len(self.open_list):
