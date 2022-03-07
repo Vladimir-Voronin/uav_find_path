@@ -41,9 +41,9 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.point_search_distance = 2
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
 
-        self.length_from_obstacle_to_analysis = 5
+        self.length_from_obstacle_to_analysis = 10
         self.powerful_of_vector_to_target = 2
-        self.powerful_of_vector_from_obstacle = 2
+        self.powerful_of_vector_from_obstacle = 1.5
 
         self.open_list = []
         self.closed_list = []
@@ -154,10 +154,12 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                     x_full_difference = node.point_expand.point.x() - obstacle_geom.centroid.x()
                     y_full_difference = node.point_expand.point.y() - obstacle_geom.centroid.y()
                     dist = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
-                    ev_x = - x_full_difference / dist
-                    ev_y = - y_full_difference / dist
-                    node.sum_vector_x = node.sum_vector_x + ev_x * self.powerful_of_vector_from_obstacle
-                    node.sum_vector_y = node.sum_vector_y * ev_y * self.powerful_of_vector_from_obstacle
+                    ev_x = x_full_difference / dist
+                    ev_y = y_full_difference / dist
+                    node.sum_vector_x = node.sum_vector_x + ev_x * (
+                            self.powerful_of_vector_from_obstacle * dist_to_obstacle / self.length_from_obstacle_to_analysis)
+                    node.sum_vector_y = node.sum_vector_y + ev_y * (
+                            self.powerful_of_vector_from_obstacle * dist_to_obstacle / self.length_from_obstacle_to_analysis)
 
     # To delete visualise vectors
     def __visualise_vectors(self):
