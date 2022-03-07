@@ -19,6 +19,14 @@ class NodeAPF:
         self.point_expand = point_expand
         self.coordinate_int_x = coordinate_int_x
         self.coordinate_int_y = coordinate_int_y
+        self.sum_vector_x = None
+        self.sum_vector_y = None
+
+
+class ObstacleAPF:
+    def __init__(self, obstacle_geometry):
+        self.obstacle_geometry = obstacle_geometry
+        self.centroid = obstacle_geometry.centroid().asPoint()
 
 
 class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
@@ -32,10 +40,16 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
         self.point_search_distance = 2
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
+
+        self.length_from_obstacle_to_analysis = 5
+        self.powerful_of_vector_to_target = 2
+        self.powerful_of_vector_from_obstacle = 2
+
         self.open_list = []
         self.closed_list = []
         self.all_nodes_list = []
         self.all_nodes_list_coor = []
+        self.list_of_obstacles_apf = []
         self.last_node = None
 
         self.list_of_path = []
@@ -112,14 +126,78 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
             self.__add_new_neighbors_to_surface(current_node)
 
+    def __update_nodes_by_target_vector(self):
+        # list_of_lines = []
+        for node in self.all_nodes_list:
+            x_full_difference = self.target_point.x() - node.point_expand.point.x()
+            y_full_difference = self.target_point.y() - node.point_expand.point.y()
+            dist = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
+            ev_x = x_full_difference / dist
+            ev_y = y_full_difference / dist
+            node.sum_vector_x = ev_x * self.powerful_of_vector_to_target
+            node.sum_vector_y = ev_y * self.powerful_of_vector_to_target
+
+            # # To Delete
+            # line = QgsGeometry.fromPolylineXY([node.point_expand.point,
+            #                                    QgsPointXY(node.point_expand.point.x() + node.sum_vector_x,
+            #                                               node.point_expand.point.y() + node.sum_vector_y)])
+            # list_of_lines.append(line)
+        # Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+        #                                             list_of_lines)
+
+    def __update_nodes_by_obstacles(self):
+        for obstacle_geom in self.list_of_obstacles_apf:
+            for node in self.all_nodes_list:
+                dist_to_obstacle = obstacle_geom.obstacle_geometry.distance(
+                    QgsGeometry.fromPointXY(node.point_expand.point))
+                if dist_to_obstacle < self.length_from_obstacle_to_analysis:
+                    x_full_difference = node.point_expand.point.x() - obstacle_geom.centroid.x()
+                    y_full_difference = node.point_expand.point.y() - obstacle_geom.centroid.y()
+                    dist = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
+                    ev_x = - x_full_difference / dist
+                    ev_y = - y_full_difference / dist
+                    node.sum_vector_x = node.sum_vector_x + ev_x * self.powerful_of_vector_from_obstacle
+                    node.sum_vector_y = node.sum_vector_y * ev_y * self.powerful_of_vector_from_obstacle
+
+    # To delete visualise vectors
+    def __visualise_vectors(self):
+        list_of_lines = []
+        for node in self.all_nodes_list:
+            # To Delete
+            line = QgsGeometry.fromPolylineXY([node.point_expand.point,
+                                               QgsPointXY(node.point_expand.point.x() + node.sum_vector_x,
+                                                          node.point_expand.point.y() + node.sum_vector_y)])
+            list_of_lines.append(line)
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                    list_of_lines)
+
+    def __create_obstacle_apf(self):
+        for o_geom in self.list_of_obstacles_geometry:
+            self.list_of_obstacles_apf.append(ObstacleAPF(o_geom))
+
     def run(self):
         debug_log.start_block("set geometry to the grid block")
         self._set_geometry_to_grid()
         debug_log.end_block("set geometry to the grid block")
-        my_time = time.perf_counter()
+
+        debug_log.start_block("create_points_surface")
         self.__create_points_surface()
-        my_time = time.perf_counter() - my_time
-        print(my_time)
+        debug_log.end_block("create_points_surface")
+
+        debug_log.start_block("__create_obstacle_apf")
+        self.__create_obstacle_apf()
+        debug_log.end_block("__create_obstacle_apf")
+
+        debug_log.start_block("__update_nodes_by_target_vector")
+        self.__update_nodes_by_target_vector()
+        debug_log.end_block("__update_nodes_by_target_vector")
+
+        debug_log.start_block("__update_nodes_by_obstacles")
+        self.__update_nodes_by_obstacles()
+        debug_log.end_block("__update_nodes_by_obstacles")
+
+        self.__visualise_vectors()
+
         points_geom = [QgsGeometry.fromPointXY(x.point_expand.point) for x in self.all_nodes_list]
         Visualizer.update_layer_by_geometry_objects(
             r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp", points_geom)
