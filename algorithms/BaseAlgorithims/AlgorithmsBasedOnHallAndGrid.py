@@ -152,5 +152,6 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         # assign geometry to the cell
         for row in self.grid.cells:
             for cell in row:
+                a = cell.borders.intersection(self.hall.hall_polygon)
                 if not cell.borders.intersection(self.hall.hall_polygon).isEmpty():
                     cell.set_geometry(self.list_of_obstacles_geometry)
