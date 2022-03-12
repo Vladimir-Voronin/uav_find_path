@@ -1,5 +1,4 @@
 from abc import ABC
-from checks.check_abstract import SearchMethod
 
 
 class DynamicAlgorithm(ABC):

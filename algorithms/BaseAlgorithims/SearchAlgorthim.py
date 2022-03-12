@@ -3,7 +3,6 @@ from abc import ABC
 from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-import logging
 
 from checks.check_abstract import SearchMethod
 

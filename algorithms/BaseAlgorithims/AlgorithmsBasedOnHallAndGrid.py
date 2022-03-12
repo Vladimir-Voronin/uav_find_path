@@ -5,7 +5,6 @@ from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.addition.GdalExtentions import ObjectsConverter
-from algorithms.addition.Visualizer import Visualizer
 from algorithms.addition.GridForRoadmap import GridForRoadmap
 from algorithms.addition.CellOfTheGrid import CellOfTheGrid
 from algorithms.addition.GeometryPointExpand import GeometryPointExpand
