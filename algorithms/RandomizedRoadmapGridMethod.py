@@ -7,7 +7,7 @@ from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.GdalFPExtension.calculations.Graphs import GdalGraphSearcher
-from algorithms.abstract.SearchMethod import SearchMethodAbstract
+from algorithms.GdalFPExtension.methodsInterfaces.SearchMethod import SearchMethodAbstract
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
