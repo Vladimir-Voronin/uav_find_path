@@ -4,8 +4,7 @@ from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
-from algorithms.addition.Visualizer import Visualizer
-from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
+from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 from algorithms.addition.Decorators import measuretime
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.addition.MathFunctions import *

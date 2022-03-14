@@ -9,9 +9,9 @@ from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.addition.GdalExtentions import ObjectsConverter
-from algorithms.addition.GeometryPointExpand import GeometryPointExpand
-from algorithms.addition.Visualizer import Visualizer
+from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
+from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 
 
 class TreeNode:

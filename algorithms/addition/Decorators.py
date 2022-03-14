@@ -2,6 +2,8 @@ import functools
 import time
 
 measuretime_enabled = True
+
+
 def measuretime(func):
     '''Decorator.
 

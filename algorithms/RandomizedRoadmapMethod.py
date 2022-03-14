@@ -1,13 +1,12 @@
 from qgis.core import *
-from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy, QgsGraphAnalyzer
+from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Decorators import measuretime
-from algorithms.addition.Visualizer import Visualizer
-from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
-from algorithms.addition.Hall import Hall
-from algorithms.addition.RandomizeFunctions import RandomizeFunctions
+from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalFPExtension.grid.Hall import Hall
+from algorithms.GdalFPExtension.gdalObjects.RandomizeFunctions import RandomizeFunctions
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 import math
 import time

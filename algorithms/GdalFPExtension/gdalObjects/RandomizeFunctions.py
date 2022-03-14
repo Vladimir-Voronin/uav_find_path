@@ -1,4 +1,4 @@
-from algorithms.addition.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 import random
 from qgis.core import *
 import math

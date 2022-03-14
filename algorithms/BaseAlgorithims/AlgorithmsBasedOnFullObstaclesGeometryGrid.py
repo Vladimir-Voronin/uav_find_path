@@ -5,8 +5,8 @@ from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.addition.CellOfTheGrid import CellOfTheGrid
-from algorithms.addition.GridForRoadmap import GridForRoadmap
+from algorithms.GdalFPExtension.grid.CellOfTheGrid import CellOfTheGrid
+from algorithms.GdalFPExtension.grid.GridForRoadmap import GridForRoadmap
 import time
 
 

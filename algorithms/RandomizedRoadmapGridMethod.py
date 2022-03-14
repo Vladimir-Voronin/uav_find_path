@@ -6,12 +6,12 @@ from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalFPExtension.calculations.Graphs import GdalGraphSearcher
 from algorithms.abstract.SearchMethod import SearchMethodAbstract
-from algorithms.addition.GdalExtentions import ObjectsConverter
-from algorithms.addition.Visualizer import Visualizer
-from algorithms.addition.QgsGraphSearcher import QgsGraphSearcher
-from algorithms.addition.GeometryPointExpand import GeometryPointExpand
-from algorithms.addition.RandomizeFunctions import RandomizeFunctions
+from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
+from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalFPExtension.gdalObjects.RandomizeFunctions import RandomizeFunctions
 from algorithms.addition.Decorators import measuretime
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 import math
@@ -132,7 +132,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         self.__set_geometry_to_grid()
         list_of_points = self.__get_points()
         graph = self.__create_graph(list_of_points)
-        searcher = QgsGraphSearcher(graph, self.starting_point, self.target_point, 0)
+        searcher = GdalGraphSearcher(graph, self.starting_point, self.target_point, 0)
 
         if not searcher.check_to_pave_the_way():
             self.debuglog.info("the algorithm failed to pave the way")

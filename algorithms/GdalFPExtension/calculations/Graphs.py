@@ -2,7 +2,7 @@ from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy, QgsGraphAnalyzer
 
 
-class QgsGraphSearcher:
+class GdalGraphSearcher:
     def __init__(self, graph, starting_point, target_point, strategy):
         self.graph = graph
         self.starting_point = starting_point
