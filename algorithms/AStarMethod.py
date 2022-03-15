@@ -11,6 +11,8 @@ from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalFPExtension.transformations.AngleDistanceTransform import AngleDistanceTransform
+from algorithms.GdalFPExtension.transformations.CoordinateTransform import Transform2D, Transform3D
 
 
 class Node:

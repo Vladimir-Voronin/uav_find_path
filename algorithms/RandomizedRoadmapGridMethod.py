@@ -1,3 +1,4 @@
+import time
 from abc import ABC
 
 from qgis.core import *
@@ -12,6 +13,7 @@ from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.gdalObjects.RandomizeFunctions import RandomizeFunctions
+from algorithms.GdalFPExtension.serialization.SerializateModule import QgsGraphSerializate
 from algorithms.addition.Decorators import measuretime
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 import math
@@ -132,6 +134,12 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         self.__set_geometry_to_grid()
         list_of_points = self.__get_points()
         graph = self.__create_graph(list_of_points)
+
+        # to delete
+        a = QgsGraphSerializate.serialize_qgsgraph_to_file(graph, path)
+        b = QgsGraphSerializate.deserialize_qgsgraph_from_file(path)
+        # /////////////
+
         searcher = GdalGraphSearcher(graph, self.starting_point, self.target_point, 0)
 
         if not searcher.check_to_pave_the_way():

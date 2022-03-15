@@ -1,12 +1,5 @@
+from pandas.core.internals.construction import _list_of_series_to_arrays
 from qgis.core import *
-from ModuleInstruments.Converter import Converter
-from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
-from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
-from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
-from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 
 
 class Point2D:
