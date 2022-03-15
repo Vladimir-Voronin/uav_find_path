@@ -1,6 +1,7 @@
 import pickle
 from qgis.core import *
-from algorithms.GdalFPExtension.serialization.GdalPreSerializeObjects import QgsPointXYSerialize, QgsPolygonSerialize
+from algorithms.GdalFPExtension.serialization.GdalPreSerializeObjects import QgsPointXYSerializable, \
+    QgsPolygonSerializable, QgsVertexSerializable, QgsEdgeSerializable, QgsGraphSerializable
 
 
 class GeometrySerializate:
@@ -12,8 +13,8 @@ class GeometrySerializate:
             for polygon in polygons:
                 points_to_serialize = []
                 for point in polygon:
-                    points_to_serialize.append(QgsPointXYSerialize(point.x(), point.y()))
-                to_serialize.append(QgsPolygonSerialize(points_to_serialize))
+                    points_to_serialize.append(QgsPointXYSerializable(point.x(), point.y()))
+                to_serialize.append(QgsPolygonSerializable(points_to_serialize))
 
         with open(path_to_file, 'wb') as f:
             pickle.dump(to_serialize, f)
@@ -30,6 +31,37 @@ class GeometrySerializate:
             result.append(polygon.get_polygon())
 
         return result
+
+
+class QgsGraphSerializate:
+    @staticmethod
+    def serialize_qgsgraph_to_file(graph, path_to_file):
+        list_of_vertices = []
+        for i in range(graph.vertexCount()):
+            pre_point = graph.vertex(i).point()
+            serializable_point = QgsPointXYSerializable(pre_point.x(), pre_point.y())
+            serializable_vertex = QgsVertexSerializable(serializable_point, i)
+            list_of_vertices.append(serializable_vertex)
+
+        list_of_edges = []
+        for i in range(graph.edgeCount()):
+            serializable_edge = QgsEdgeSerializable(graph.edge(i).fromVertex(), graph.edge(i).toVertex())
+            list_of_edges.append(serializable_edge)
+
+        serializable_graph = QgsGraphSerializable(list_of_vertices, list_of_edges)
+
+        with open(path_to_file, 'wb') as f:
+            pickle.dump(serializable_graph, f)
+
+        return True
+
+    @staticmethod
+    def deserialize_qgsgraph_from_file(path_to_file):
+        with open(path_to_file, 'rb') as f:
+            from_serialize = pickle.load(f)
+
+        qgs_graph = from_serialize.get_qgsGraph()
+        return qgs_graph
 
 
 if __name__ == "__main__":
