@@ -52,18 +52,26 @@ class AntEdge:
 
 
 class AntGraph:
-    def __init__(self, array, start_vertex, decr_coef):
+    def __init__(self, array, start_vertex, decr_coef, expire_coef):
         self.array = array
         self.start_vertex = start_vertex
         if 0 >= decr_coef >= 1:
             raise ValueError("decr coef should be between 0 and 1 (but not equal to them)")
         self.dect_coef = decr_coef
+        self.expire_coef = expire_coef
+
+        self.all_verteces = []
+        for i in range(len(array) - 1):
+            for k in range(len(array[i]) - 1):
+                if type(array[i][k]) is AntVertex:
+                    self.all_verteces.append(array[i][k])
 
         self.target_verteces = []
         for i in range(len(self.array) - 1):
             for k in range(len(self.array[i]) - 1):
                 if type(self.array[i][k]) is AntVertex and self.array[i][k].near_to_target:
                     self.target_verteces.append(self.array[i][k])
+                    break
 
         for ver in self.target_verteces:
             for edge in ver.edges:
@@ -79,11 +87,85 @@ class AntGraph:
 
         rand_edge.pheromone_value = max(rand_edge.pheromone_value,
                                         v_next.get_max_pheromones().pheromone_value * self.dect_coef)
+        # rand_edge.pheromone_value = rand_edge.pheromone_value * (
+        #             1 - self.dect_coef) + v_next.get_max_pheromones().pheromone_value * self.dect_coef
         return v_next
 
-    def investigation_from_target(self, vertex_begin, number_of_steps):
+    def one_real_step(self, vertex):
+        max_value = -1
+        edge = None
+        for e in vertex.edges:
+            if e.pheromone_value > max_value:
+                max_value = e.pheromone_value
+                edge = e
+            elif e.pheromone_value == max_value:
+                get_it = random.randint(0, 1)
+                if get_it:
+                    edge = e
+
+        v_next = None
+        if vertex == edge.one_vertex:
+            v_next = edge.another_vertex
+        elif vertex == edge.another_vertex:
+            v_next = edge.one_vertex
+
+        edge.pheromone_value = max(edge.pheromone_value,
+                                   v_next.get_max_pheromones().pheromone_value * self.dect_coef)
+        # edge.pheromone_value = edge.pheromone_value * (
+        #             1 - self.dect_coef) + v_next.get_max_pheromones().pheromone_value * self.dect_coef
+        return v_next, edge
+
+    def investigation_from_vertex(self, vertex_begin, number_of_steps):
         for i in range(number_of_steps):
             vertex_begin = self.one_random_step(vertex_begin)
+        return vertex_begin
+
+    def search_from_start_to_target(self, max_number_of_iterations):
+        vertex_begin = self.start_vertex
+        for i in range(max_number_of_iterations):
+            vertex_begin, edge = self.one_real_step(vertex_begin)
+            if vertex_begin in self.target_verteces:
+                break
+
+    def contest(self, number_of_ants_to_contest, max_number_of_iterations):
+        edges_to_upgrade = [x for x in range(len(self.all_verteces) * 8)]
+        for ant in range(number_of_ants_to_contest):
+            current_edges = []
+            vertex_begin = self.start_vertex
+            for i in range(max_number_of_iterations):
+                vertex_begin, edge = self.one_real_step(vertex_begin)
+                current_edges.append(edge)
+                if vertex_begin in self.target_verteces:
+                    if len(current_edges) < len(edges_to_upgrade):
+                        edges_to_upgrade = current_edges.copy()
+                    break
+        for edge in edges_to_upgrade:
+            edge.pheromone_value += edge.pheromone_value * ((1 - self.expire_coef) / 3)
+
+    def expire(self):
+        for i in self.all_verteces:
+            for e in i.edges:
+                e.pheromone_value = e.pheromone_value * self.expire_coef
+
+    def get_real_path(self, max_number_of_iterations):
+        path_by_vertex = []
+        is_ok = False
+        vertex_begin = self.start_vertex
+        path_by_vertex.append(vertex_begin)
+        for i in range(max_number_of_iterations):
+            vertex_begin, edge = self.one_real_step(vertex_begin)
+            path_by_vertex.append(vertex_begin)
+            if vertex_begin in self.target_verteces:
+                is_ok = True
+                break
+
+        if not is_ok:
+            raise Exception("Need more investigations in this matrix")
+
+        points_path = []
+        for i in path_by_vertex:
+            points_path.append(i.point)
+        return points_path
 
 
 class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
@@ -114,7 +196,6 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.node_path = []
         self.list_of_path = []
         self.final_path = []
-        self.is_succes = False
 
     def __create_grid(self):
         self.debuglog.start_block("create grid")
@@ -228,24 +309,32 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         # coordinates [0, 0]
         start_v = array[split_x][split_y]
 
-        all_verteces = []
-        for i in range(len(array) - 1):
-            for k in range(len(array[i]) - 1):
-                if type(array[i][k]) is AntVertex:
-                    all_verteces.append(array[i][k])
-
-        ant_graph = AntGraph(array, start_v, 0.95)
+        ant_graph = AntGraph(array, start_v, 0.95, 0.98)
         for i in range(10):
-            ant_graph.investigation_from_target(random.choice(ant_graph.target_verteces), 2000)
+            ant_graph.investigation_from_vertex(random.choice(ant_graph.target_verteces),
+                                                len(ant_graph.all_verteces) * 5)
+        ant_graph.expire()
+        for i in range(50):
+            ant_graph.investigation_from_vertex(random.choice(ant_graph.all_verteces), 200)
+
+        ant_graph.expire()
         for i in range(200):
-            ant_graph.investigation_from_target(random.choice(all_verteces), 1000)
-        a = 0
+            ant_graph.investigation_from_vertex(ant_graph.start_vertex, 1000)
+            ant_graph.search_from_start_to_target(len(ant_graph.all_verteces))
+
+        # for i in range(10):
+        #     ant_graph.contest(1000, len(ant_graph.all_verteces))
+
+        ant_graph.expire()
         self.visualise_ant_edges(array)
 
-    def __create_path_from_node_path(self):
-        for i in range(len(self.node_path) - 1):
-            line = QgsGeometry.fromPolylineXY([self.node_path[i].point_expand.point,
-                                               self.node_path[i + 1].point_expand.point])
+        points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
+        return points_path
+
+    def __create_path_from_points(self, points_list):
+        for i in range(len(points_list) - 1):
+            line = QgsGeometry.fromPolylineXY([points_list[i],
+                                               points_list[i + 1]])
             self.list_of_path.append(line)
 
     def run(self):
@@ -258,13 +347,10 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         debug_log.end_block("create_points_surface")
 
         debug_log.start_block("__find_path")
-        self.__find_path()
+        points_path = self.__find_path()
         debug_log.end_block("__find_path")
 
-        if not self.is_succes:
-            return
-
-        self.__create_path_from_node_path()
+        self.__create_path_from_points(points_path)
 
         self.final_path = self.__get_shorter_path(self.list_of_path)
         self.visualise()
@@ -302,15 +388,9 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
             Visualizer.update_layer_by_geometry_objects(
                 r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp", points_geom)
-            list_of_lines = []
-            for node in self.all_nodes_list:
-                # To Delete
-                line = QgsGeometry.fromPolylineXY([node.point_expand.point,
-                                                   QgsPointXY(node.point_expand.point.x() + node.sum_vector_x,
-                                                              node.point_expand.point.y() + node.sum_vector_y)])
-                list_of_lines.append(line)
+
             Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
-                                                        list_of_lines)
+                                                        self.list_of_path)
 
             Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
                                                      self.final_path)
