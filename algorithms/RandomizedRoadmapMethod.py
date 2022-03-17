@@ -2,6 +2,7 @@ from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalFPExtension.calculations.Graphs import GdalGraphSearcher
 from algorithms.GdalFPExtension.methodsInterfaces.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Decorators import measuretime
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
@@ -130,7 +131,7 @@ class RandomizedRoadmapMethod(SearchAlgorithm, SearchMethodAbstract):
         self.debug_info()
         tick = time.perf_counter()
         graph = self.__create_graph()
-        searcher = QgsGraphSearcher(graph, self.starting_point, self.target_point, 0)
+        searcher = GdalGraphSearcher(graph, self.starting_point, self.target_point, 0)
 
         if not searcher.check_to_pave_the_way():
             print("the algorithm failed to pave the way")

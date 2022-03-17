@@ -163,29 +163,26 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                 break
 
     def run(self):
-        debug_log.start_block("set geometry to the grid block")
+        self.debuglog.start_block("set geometry to the grid block")
         self._set_geometry_to_grid()
-        debug_log.end_block("set geometry to the grid block")
+        self.debuglog.end_block("set geometry to the grid block")
 
-        debug_log.start_block("start searching block")
+        self.debuglog.start_block("start searching block")
         self.__start_searching()
-        debug_log.end_block("start searching block")
+        self.debuglog.end_block("start searching block")
 
-        debug_log.start_block("find pre min path")
+        self.debuglog.start_block("find pre min path")
         self.__find_path_in_tree()
-        debug_log.end_block("find pre min path")
+        self.debuglog.end_block("find pre min path")
 
-        debug_log.start_block("get final path")
+        self.debuglog.start_block("get final path")
         len(self.list_of_path)
         path_feats = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
         path_feats.reverse()
         self.final_path_feats = self.__get_shorter_path(path_feats, 3)
-        debug_log.end_block("get final path")
+        self.debuglog.end_block("get final path")
 
-        if __name__ == '__main__':
-            self.visualise()
-
-    def visualise(self):
+    def visualize(self):
         tree_to_visualize = [x.prev_line for x in self.list_of_treenodes]
         list_of_min_path_to_visualize = [x for x in self.list_of_path]
         if self.create_debug_layers:
@@ -224,6 +221,7 @@ if __name__ == '__main__':
         debug_log = DebugLog()
         check = RRTDirectMethod(find_path_data, debug_log)
         check.run()
+        check.visualize()
         print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)

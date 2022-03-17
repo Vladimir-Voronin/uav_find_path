@@ -36,5 +36,5 @@ class SearchAlgorithm(SearchMethod, ABC):
     def run(self):
         raise NotImplementedError
 
-    def visualise(self):
+    def visualize(self):
         raise NotImplementedError

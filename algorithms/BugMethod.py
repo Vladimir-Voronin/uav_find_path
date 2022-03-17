@@ -8,6 +8,7 @@ from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 from algorithms.GdalFPExtension.calculations import ObjectsCalculations
+from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 
@@ -58,7 +59,6 @@ class Pare:
             start_point_id += 1
             points_of_lines.insert(start_point_id, self.start_point)
 
-
         path1 = []
         distance_path1 = 0
 
@@ -67,7 +67,8 @@ class Pare:
         while current != target:
             path1.append(current)
             if current + 1 < len(points_of_lines):
-                distance_path1 += ObjectsCalculations.get_distance(points_of_lines[current], points_of_lines[current + 1])
+                distance_path1 += ObjectsCalculations.get_distance(points_of_lines[current],
+                                                                   points_of_lines[current + 1])
                 current += 1
             else:
                 distance_path1 += ObjectsCalculations.get_distance(points_of_lines[current], points_of_lines[0])
@@ -80,11 +81,12 @@ class Pare:
         while current != target:
             path2.append(current)
             if current - 1 >= 0:
-                distance_path2 += ObjectsCalculations.get_distance(points_of_lines[current], points_of_lines[current - 1])
+                distance_path2 += ObjectsCalculations.get_distance(points_of_lines[current],
+                                                                   points_of_lines[current - 1])
                 current = current - 1
             else:
                 distance_path2 += ObjectsCalculations.get_distance(points_of_lines[0],
-                                                           points_of_lines[len(points_of_lines) - 1])
+                                                                   points_of_lines[len(points_of_lines) - 1])
                 current = len(points_of_lines) - 1
 
         path2.append(target)
@@ -164,11 +166,6 @@ class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                     pare = Pare(points[0], points[1], part)
                     pares.append(pare)
 
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
-                                                    [QgsGeometry.fromPolylineXY([x.start_point, x.end_point]) for x in
-                                                     pares])
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
-                                                    [self.__vector_geometry])
 
         for pare in pares:
             pare.build_round_path()
@@ -197,8 +194,17 @@ class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
             line = QgsGeometry.fromPolylineXY([point1, point2])
             self.line_path.append(line)
 
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
-                                                    self.line_path)
+    def visualize(self):
+        if self.create_debug_layers:
+            pass
+
+        line_path = ObjectsConverter.list_of_geometry_to_feats(self.line_path)
+        Visualizer.create_and_add_new_final_path(self.project, self.path_to_save_layers, line_path)
+        if __name__ == '__main__':
+            Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                        [self.__vector_geometry])
+            Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                        self.line_path)
 
 
 if __name__ == '__main__':
@@ -223,6 +229,7 @@ if __name__ == '__main__':
         check = BugMethod(find_path_data, debug_log)
         my_time_full = 0
         check.run()
+        check.visualize()
         print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)

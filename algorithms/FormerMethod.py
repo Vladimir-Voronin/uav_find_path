@@ -326,7 +326,7 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         #     ant_graph.contest(1000, len(ant_graph.all_verteces))
 
         ant_graph.expire()
-        self.visualise_ant_edges(array)
+        self.visualize_ant_edges(array)
 
         points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
         return points_path
@@ -338,24 +338,23 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
             self.list_of_path.append(line)
 
     def run(self):
-        debug_log.start_block("set geometry to the grid block")
+        self.debuglog.start_block("set geometry to the grid block")
         self._set_geometry_to_grid()
-        debug_log.end_block("set geometry to the grid block")
+        self.debuglog.end_block("set geometry to the grid block")
 
-        debug_log.start_block("create_points_surface")
+        self.debuglog.start_block("create_points_surface")
         self.__create_points_surface()
-        debug_log.end_block("create_points_surface")
+        self.debuglog.end_block("create_points_surface")
 
-        debug_log.start_block("__find_path")
+        self.debuglog.start_block("__find_path")
         points_path = self.__find_path()
-        debug_log.end_block("__find_path")
+        self.debuglog.end_block("__find_path")
 
         self.__create_path_from_points(points_path)
 
         self.final_path = self.__get_shorter_path(self.list_of_path)
-        self.visualise()
 
-    def visualise_ant_edges(self, array):
+    def visualize_ant_edges(self, array):
         list_to_visualise = []
         for i in range(len(array) - 1):
             for k in range(len(array[i]) - 1):
@@ -374,7 +373,7 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_line.shp",
                                                  features)
 
-    def visualise(self):
+    def visualize(self):
         if self.create_debug_layers:
             points_feats = ObjectsConverter.list_of_geometry_to_feats(self.all_nodes_list)
             min_short_feats = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
@@ -416,8 +415,10 @@ if __name__ == '__main__':
                                       source_list_of_geometry_obstacles)
         debug_log = DebugLog()
         check = FormerMethod(find_path_data, debug_log)
+        check.visualize()
         my_time_full = 0
         check.run()
+        check.visualize()
         print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)

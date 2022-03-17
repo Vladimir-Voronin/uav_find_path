@@ -308,37 +308,37 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
             self.list_of_path.append(line)
 
     def run(self):
-        debug_log.start_block("set geometry to the grid block")
+        self.debuglog.start_block("set geometry to the grid block")
         self._set_geometry_to_grid()
-        debug_log.end_block("set geometry to the grid block")
+        self.debuglog.end_block("set geometry to the grid block")
 
-        debug_log.start_block("__create_linked_angle")
+        self.debuglog.start_block("__create_linked_angle")
         self.__create_linked_angle()
-        debug_log.end_block("__create_linked_angle")
+        self.debuglog.end_block("__create_linked_angle")
 
-        debug_log.start_block("create_points_surface")
+        self.debuglog.start_block("create_points_surface")
         self.__create_points_surface()
-        debug_log.end_block("create_points_surface")
+        self.debuglog.end_block("create_points_surface")
 
-        debug_log.start_block("__create_obstacle_apf")
+        self.debuglog.start_block("__create_obstacle_apf")
         self.__create_obstacle_apf()
-        debug_log.end_block("__create_obstacle_apf")
+        self.debuglog.end_block("__create_obstacle_apf")
 
-        debug_log.start_block("__update_nodes_by_target_vector")
+        self.debuglog.start_block("__update_nodes_by_target_vector")
         self.__update_nodes_by_target_vector()
-        debug_log.end_block("__update_nodes_by_target_vector")
+        self.debuglog.end_block("__update_nodes_by_target_vector")
 
-        debug_log.start_block("__update_nodes_by_obstacles")
+        self.debuglog.start_block("__update_nodes_by_obstacles")
         self.__update_nodes_by_obstacles()
-        debug_log.end_block("__update_nodes_by_obstacles")
+        self.debuglog.end_block("__update_nodes_by_obstacles")
 
-        debug_log.start_block("__calculate_sum_vector_for_each_node")
+        self.debuglog.start_block("__calculate_sum_vector_for_each_node")
         self.__calculate_sum_vector_for_each_node()
-        debug_log.end_block("__calculate_sum_vector_for_each_node")
+        self.debuglog.end_block("__calculate_sum_vector_for_each_node")
 
-        debug_log.start_block("__find_path")
+        self.debuglog.start_block("__find_path")
         self.__find_path()
-        debug_log.end_block("__find_path")
+        self.debuglog.end_block("__find_path")
 
         if not self.is_succes:
             return
@@ -346,9 +346,8 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.__create_path_from_node_path()
 
         self.final_path = self.__get_shorter_path(self.list_of_path)
-        self.visualise()
 
-    def visualise(self):
+    def visualize(self):
         if self.create_debug_layers:
             points_feats = ObjectsConverter.list_of_geometry_to_feats(self.all_nodes_list)
             min_short_feats = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
@@ -398,6 +397,7 @@ if __name__ == '__main__':
         check = APFMethod(find_path_data, debug_log)
         my_time_full = 0
         check.run()
+        check.visualize()
         print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)

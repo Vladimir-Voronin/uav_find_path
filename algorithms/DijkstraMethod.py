@@ -147,24 +147,23 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                     r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp", points_geom)
 
     def run(self):
-        debug_log.start_block("set geometry to the grid block")
+        self.debuglog.start_block("set geometry to the grid block")
         self._set_geometry_to_grid()
-        debug_log.end_block("set geometry to the grid block")
+        self.debuglog.end_block("set geometry to the grid block")
 
-        debug_log.start_block("start searching block")
+        self.debuglog.start_block("start searching block")
         self.__start_searching()
-        debug_log.end_block("start searching block")
+        self.debuglog.end_block("start searching block")
 
-        debug_log.start_block("find path block")
+        self.debuglog.start_block("find path block")
         self.__find_path()
-        debug_log.end_block("find path block")
+        self.debuglog.end_block("find path block")
 
-        debug_log.start_block("get final path block")
+        self.debuglog.start_block("get final path block")
         self.final_path = self.__get_shorter_path(self.list_of_path)
-        debug_log.end_block("get final path block")
-        self.visualise()
+        self.debuglog.end_block("get final path block")
 
-    def visualise(self):
+    def visualize(self):
         if self.create_debug_layers:
             points_feats = ObjectsConverter.list_of_geometry_to_feats(self.all_nodes_list)
             min_short_feats = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
@@ -204,6 +203,7 @@ if __name__ == '__main__':
         debug_log = DebugLog()
         check = DijkstraMethod(find_path_data, debug_log)
         check.run()
+        check.visualize()
         print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)
