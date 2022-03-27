@@ -23,6 +23,7 @@
 """
 import os
 import sys
+
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 import qgis
@@ -37,8 +38,6 @@ import copy
 
 from ModuleInstruments.Converter import Converter
 
-
-
 import PyQt5
 # Initialize Qt resources from file resources.py
 from ModuleInstruments.DebugLog import DebugLog
@@ -49,7 +48,8 @@ from .uav_find_path_dialog import UAVFindPathDialog
 
 import time
 
-from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod, RRTDirectMethod
+from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod, RRTDirectMethod, DijkstraMethod, \
+    AStarMethod, DStarMethod, APFMethod, BugMethod, FormerMethod
 
 
 class UAVFindPath:
@@ -92,6 +92,7 @@ class UAVFindPath:
         self.start_point = None
         self.target_point = None
         self.path_to_save_layers = None
+        self.algorithm_dict = {}
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -286,8 +287,9 @@ class UAVFindPath:
 
         if check_if_FindPathData_is_ok(find_path_data):
             debug_log.info("FindPathData is ok!")
+            my_algorithm = self.algorithm_dict[self.dlg.comboBox_select_search_method.currentText()]
 
-            current_algorithm = RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod(find_path_data, debug_log)
+            current_algorithm = my_algorithm(find_path_data, debug_log)
             current_algorithm.run()
             current_algorithm.visualize()
             self.dlg.textEdit_debug_info.setText(current_algorithm.debuglog.get_info())
@@ -313,14 +315,21 @@ class UAVFindPath:
         self.project = QgsProject.instance()
 
         # dict of algorithms
-        algorithm_dict = {'Randomized Roadmap Method': RandomizedRoadmapMethod.RandomizedRoadmapMethod,
-                          'RRT method': RRTDirectMethod.RRTDirectMethod}
+        self.algorithm_dict = {
+            'Randomized Roadmap Grid Method': RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod,
+            'RRT method': RRTDirectMethod.RRTDirectMethod,
+            'A* Method': AStarMethod.AStarMethod,
+            'D* Method': DStarMethod.DStarMethod,
+            'APF Method': APFMethod.APFMethod,
+            'Dijkstra method': DijkstraMethod.DijkstraMethod,
+            'Bug Method': BugMethod.BugMethod,
+            'Former Method': FormerMethod.FormerMethod}
         # add layers to "select layer"
         self.update_combo_box_layers()
 
         # add search methods to "select search methods
         self.dlg.comboBox_select_search_method.clear()
-        self.dlg.comboBox_select_search_method.addItems(algorithm_dict.keys())
+        self.dlg.comboBox_select_search_method.addItems(self.algorithm_dict.keys())
         # show the dialog
         self.dlg.show()
 

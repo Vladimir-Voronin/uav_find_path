@@ -15,7 +15,9 @@ class Converter:
         for feature in features:
             geom = feature.geometry()
             if source_projection != general_projection:
-                check = geom.asGeometryCollection()[0].asPolygon()
+                check = None
+                if len(geom.asGeometryCollection()) > 0:
+                    check = geom.asGeometryCollection()[0].asPolygon()
                 if not check:
                     continue
 

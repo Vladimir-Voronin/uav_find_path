@@ -17,10 +17,10 @@ class DebugLog:
 
         # Memory
         # key=name_of_block, value=block memory start
-        self.__dictinary_start_memory = {}
+        self._dictinary_start_memory = {}
         # key=name_of_block, value endblock memory - block memory start.
         # Use to take memory of particular block
-        self.__dictinary_execute_memory = {}
+        self.dictinary_execute_memory = {}
         logging.basicConfig(filename=r'C:\Users\Neptune\Desktop\app.txt', filemode='w', level=logging.DEBUG)
 
     def info(self, message: str):
@@ -49,20 +49,19 @@ class DebugLog:
             self.info(f'Block "{name}" worked for {self.__dictinary_execute_time[name]} s.')
 
     def start_memory_block(self, name: str):
-        if name in self.__dictinary_start_memory or name in self.__dictinary_execute_memory:
+        if name in self._dictinary_start_memory or name in self.dictinary_execute_memory:
             raise Exception(f"This name of the memory measure block named {name} already used")
-        self.__dictinary_start_memory[name] = memory_usage()[0]
+        self._dictinary_start_memory[name] = memory_usage()[0]
 
     def end_memory_block(self, name: str, to_info_at_ones=True):
         save = memory_usage()[0]
-        if name not in self.__dictinary_start_memory:
+        if name not in self._dictinary_start_memory:
             raise Exception(f"This memory measure block named {name} hasn't been started")
-        if name in self.__dictinary_execute_memory:
+        if name in self.dictinary_execute_memory:
             raise Exception(f"This memory measure block named {name} already ended")
-
-        self.__dictinary_execute_memory[name] = save - self.__dictinary_start_memory[name]
+        self.dictinary_execute_memory[name] = save - self._dictinary_start_memory[name]
         if to_info_at_ones:
-            self.info(f'Block "{name}" used {self.__dictinary_execute_memory[name]} MiB')
+            self.info(f'Block "{name}" used {self.dictinary_execute_memory[name]} MiB')
 
     # Measure time and memory together, start block
     def start_block(self, name: str):
