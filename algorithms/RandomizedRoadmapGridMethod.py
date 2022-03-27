@@ -27,7 +27,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         self.random_points_feats = None
         self.default_graph_feats = None
         self.min_short_path_tree_feats = None
-        self.final_path_feats = None
+        self.final_path = None
 
     def __create_grid(self):
         self.debuglog.start_block("create grid")
@@ -150,11 +150,11 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         self.debuglog.info("get_short_path_tree_feats")
 
         # get min path and visualize
-        self.final_path_feats = searcher.get_features_from_min_path()
+        self.final_path = searcher.get_features_from_min_path()
 
         self.debuglog.info("get_pre_final_path")
 
-        self.final_path_feats = self.__get_shorter_path(self.final_path_feats, 2)
+        self.final_path = self.__get_shorter_path(self.final_path, 2)
 
         self.debuglog.info("get_final_path")
 
@@ -166,13 +166,13 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
                                                         self.default_graph_feats)
             Visualizer.create_and_add_new_path_short_tree(self.project, self.path_to_save_layers,
                                                           self.min_short_path_tree_feats)
-        Visualizer.create_and_add_new_final_path(self.project, self.path_to_save_layers, self.final_path_feats)
+        Visualizer.create_and_add_new_final_path(self.project, self.path_to_save_layers, self.final_path)
 
         if __name__ == '__main__':
             Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp",
                                                      self.random_points_feats)
             Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
-                                                     self.final_path_feats)
+                                                     self.final_path)
 
 
 if __name__ == '__main__':
@@ -182,8 +182,8 @@ if __name__ == '__main__':
 
     proj = QgsProject.instance()
     proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7841907, 47.2721542))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7870167, 47.2731084))
+    point1 = QgsGeometry.fromPointXY(QgsPointXY(4428461.17, 5955316.04))
+    point2 = QgsGeometry.fromPointXY(QgsPointXY(4428705.49, 5955569.82))
     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
     obstacles = QgsVectorLayer(path)

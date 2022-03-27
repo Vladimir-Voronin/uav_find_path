@@ -1,11 +1,14 @@
 import math
 import random
+from _ctypes import sizeof
 
 import numpy as np
 import time
 from abc import ABC
 from operator import attrgetter
 
+import sys
+from memory_profiler import profile
 from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
@@ -177,21 +180,13 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.target_point_expand = GeometryPointExpand(self.target_point, cell_target.n_row,
                                                        cell_target.n_column)
 
-        self.point_search_distance = 2
+        self.point_search_distance = 3
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
-
-        self.length_from_obstacle_to_analysis = 10
-        self.powerful_of_vector_to_target = 2
-        self.powerful_of_vector_from_obstacle = 2
 
         self.open_list = []
         self.closed_list = []
         self.all_nodes_list = []
         self.all_nodes_list_coor = []
-        self.list_of_obstacles_apf = []
-        self.last_node = None
-
-        self.linked_angle_current = None
 
         self.node_path = []
         self.list_of_path = []
@@ -314,16 +309,13 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
             ant_graph.investigation_from_vertex(random.choice(ant_graph.target_verteces),
                                                 len(ant_graph.all_verteces) * 5)
         ant_graph.expire()
-        for i in range(50):
+        for i in range(len(ant_graph.all_verteces)):
             ant_graph.investigation_from_vertex(random.choice(ant_graph.all_verteces), 200)
 
         ant_graph.expire()
         for i in range(200):
-            ant_graph.investigation_from_vertex(ant_graph.start_vertex, 1000)
+            ant_graph.investigation_from_vertex(ant_graph.start_vertex, len(ant_graph.all_verteces))
             ant_graph.search_from_start_to_target(len(ant_graph.all_verteces))
-
-        # for i in range(10):
-        #     ant_graph.contest(1000, len(ant_graph.all_verteces))
 
         ant_graph.expire()
         self.visualize_ant_edges(array)
@@ -404,8 +396,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.78627069, 47.27471944))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.78578933, 47.27420137))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4427959.83, 5955014.48))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428148.92, 5955194.46))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
