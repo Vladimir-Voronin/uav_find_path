@@ -67,7 +67,6 @@ class GridForRoadmap:
         if (cell1 or cell2) is None:
             raise Exception("One or both points not in grid")
         if cell1 == cell2:
-            # print(f"{cell1.number_of_polyg}", end=" ")
             return cell1.geometry
 
         list_of_cells = []
@@ -92,7 +91,6 @@ class GridForRoadmap:
         if (cell1 or cell2) is None:
             raise Exception("One or both points not in grid")
         if cell1 == cell2:
-            # print(f"{cell1.number_of_polyg}", end=" ")
             return cell1.geometry
 
         list_of_cells = []

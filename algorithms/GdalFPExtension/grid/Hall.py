@@ -104,7 +104,6 @@ class Hall:
 
         layer.dataProvider().addFeatures(feats)
         layer.triggerRepaint()
-        print("HERE")
 
     def create_multipolygon_geometry_by_hall(self, obstacles, project):
         features = obstacles.getFeatures()
@@ -133,7 +132,6 @@ class Hall:
         for geometry in list_of_geometry:
             if polygon.distance(geometry) == 0.0:
                 list_of_geometry_handled.append(geometry)
-        print("objects_number: ", len(list_of_geometry_handled))
         # because we cant add Part of geometry to empty OgsGeometry instance
         multi_polygon_geometry = QgsGeometry.fromPolygonXY([[QgsPointXY(1, 1), QgsPointXY(2, 2), QgsPointXY(2, 1)]])
 

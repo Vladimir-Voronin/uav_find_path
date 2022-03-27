@@ -28,3 +28,4 @@ class CellOfTheGrid:
             if polygon is not None:
                 self.geometry.addPartGeometry(polygon)
         self.geometry.deletePart(0)
+        return list_of_geom
