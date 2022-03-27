@@ -20,6 +20,7 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         self.const_square_meters = 400
         self.const_sight_of_points = 12
         self.step_of_the_grid = 100  # step of the grid
+        self.numbers_of_geom = 0
 
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y(),
                          hall_width)
@@ -44,8 +45,6 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
 
         grid = GridForRoadmap(number_of_rows, number_of_columns, self.step_of_the_grid, self.bottom_y, self.left_x)
 
-        print("rows: ", number_of_rows)
-        print("columns: ", number_of_columns)
         lx = self.left_x
         by = self.bottom_y
         coor_row = 0
@@ -103,28 +102,23 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         list_min_path_indexes = [0]
         update_index = 0
         i = 0
-        while i < len(points_extended):
-            for k in range(i + 2, min(i + 2 + depth, len(points_extended))):
-                line = QgsGeometry.fromPolylineXY([points_extended[i].point.asPoint(),
-                                                   points_extended[k].point.asPoint()])
+        current_index = 0
+        list_min_path_indexes.append(current_index)
+        while current_index < len(points_extended) - 1:
+            next_index = current_index + 1
+            for k in range(current_index + 2, min(current_index + 2 + depth, len(points_extended))):
+                line = QgsGeometry.fromPolylineXY([points_extended[current_index].point.asPoint(),
+                                                           points_extended[k].point.asPoint()])
 
-                geometry_obstacles = self.grid.get_multipolygon_by_points(points_extended[i],
+                geometry_obstacles = self.grid.get_multipolygon_by_points(points_extended[current_index],
                                                                           points_extended[k])
 
                 if geometry_obstacles.isNull() or geometry_obstacles.distance(line) > 0:
-                    update_index = k
+                    next_index = k
                 else:
-                    if i == update_index:
-                        i += 1
-                        update_index += 1
-                    i = update_index
-                    i -= 1
                     break
-            if i == update_index:
-                i += 1
-            else:
-                i = update_index
-            list_min_path_indexes.append(update_index)
+            current_index = next_index
+            list_min_path_indexes.append(current_index)
 
         if len(points_extended) - 1 != list_min_path_indexes[-1]:
             list_min_path_indexes.append(len(points_extended) - 1)
@@ -153,4 +147,5 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
             for cell in row:
                 a = cell.borders.intersection(self.hall.hall_polygon)
                 if not cell.borders.intersection(self.hall.hall_polygon).isEmpty():
-                    cell.set_geometry(self.list_of_obstacles_geometry)
+                    list_of_inter_geom = cell.set_geometry(self.list_of_obstacles_geometry)
+                    self.numbers_of_geom += len(list_of_inter_geom)
