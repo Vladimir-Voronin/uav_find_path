@@ -30,7 +30,7 @@ class Node:
 
 class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
-        hall_width = 200
+        hall_width = 150
         super().__init__(findpathdata, debuglog, hall_width)
 
         cell_target = self.grid.difine_point(self.target_point_geometry)
@@ -89,19 +89,20 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
 
             cell = self.grid.define_point_using_math_search(point)
             if cell is not None:
-                if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
-                        point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
-                    point_expand = self.grid.get_point_expand_by_point(point)
-                    if (x == 1 or x == -1) and (y == 1 or y == -1):
-                        new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
-                                        node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
-                    else:
-                        new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
-                                        node.coordinate_int_x + x, node.coordinate_int_y + y)
-                    self.open_list.append(new_node)
-                    self.all_nodes_list.append(new_node)
-                    self.all_nodes_list_coor.append([new_x, new_y])
+                if cell.geometry is not None:
+                    if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
+                            point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
+                        point_expand = self.grid.get_point_expand_by_point(point)
+                        if (x == 1 or x == -1) and (y == 1 or y == -1):
+                            new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
+                                            node,
+                                            node.coordinate_int_x + x, node.coordinate_int_y + y)
+                        else:
+                            new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
+                                            node.coordinate_int_x + x, node.coordinate_int_y + y)
+                        self.open_list.append(new_node)
+                        self.all_nodes_list.append(new_node)
+                        self.all_nodes_list_coor.append([new_x, new_y])
 
     def __update_new_neighbor(self, node, x, y):
         new_x = node.coordinate_int_x + x

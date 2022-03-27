@@ -227,6 +227,13 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
                 if self.linked_angle_current.angle <= angle < n / 2:
                     right_priority = False
                 break
+            elif self.linked_angle_current.angle == 337.5:
+                if self.linked_angle_current.angle <= angle <= 360:
+                    right_priority = False
+                    break
+                if 0 <= angle < 22.5:
+                    break
+                self.linked_angle_current = self.linked_angle_current.next
             else:
                 self.linked_angle_current = self.linked_angle_current.next
 
@@ -279,12 +286,13 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         st = [node.sum_vector_x, node.sum_vector_y]
         vertical = [0, 1]
         angle = np.degrees(np.math.atan2(np.linalg.det([st, vertical]), np.dot(st, vertical)))
+        i = 0
         while True:
             if angle < 0:
                 angle = 360 + angle
             node = self.__get_next_point_by_angle(node, array, split_x, split_y, angle)
             if node is None:
-                debug_log.info("the algorithm failed to pave the way")
+                self.debuglog.info("the algorithm failed to pave the way")
                 print("the algorithm failed to pave the way")
                 break
 
@@ -339,7 +347,6 @@ class APFMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.debuglog.start_block("__find_path")
         self.__find_path()
         self.debuglog.end_block("__find_path")
-
         if not self.is_succes:
             return
 
@@ -384,8 +391,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.78627069, 47.27471944))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.78578933, 47.27420137))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428921.1, 5956859.8))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4429093.6, 5956882.6))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

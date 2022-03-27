@@ -103,9 +103,6 @@ class Pare:
             line = QgsGeometry.fromPolylineXY([point1, point2])
             lala.append(line)
 
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
-                                                    lala)
-
 
 class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
@@ -122,6 +119,7 @@ class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.__vector_geometry = None
         self.point_path = []
         self.line_path = []
+        self.final_path = []
 
     def __create_grid(self):
         self.debuglog.start_block("create grid")
@@ -152,20 +150,34 @@ class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         for part in geometry_list:
             intersections = self.__vector_geometry.intersection(part)
             if intersections:
-                points = intersections.asPolyline()
+                try:
+                    points = intersections.asPolyline()
 
-                # to delete repeat geometry
-                rep = []
-                for i in points:
-                    rep.append(i.x())
-                    rep.append(i.y())
+                    # to delete repeat geometry
+                    rep = []
+                    for i in points:
+                        rep.append(i.x())
+                        rep.append(i.y())
 
-                if rep not in points_except_repeats:
-                    points_except_repeats.append(rep)
+                    if rep not in points_except_repeats:
+                        points_except_repeats.append(rep)
 
-                    pare = Pare(points[0], points[1], part)
-                    pares.append(pare)
+                        pare = Pare(points[0], points[1], part)
+                        pares.append(pare)
+                except TypeError:
+                    multi = intersections.asMultiPolyline()
+                    for points in multi:
+                        # to delete repeat geometry
+                        rep = []
+                        for i in points:
+                            rep.append(i.x())
+                            rep.append(i.y())
 
+                        if rep not in points_except_repeats:
+                            points_except_repeats.append(rep)
+
+                            pare = Pare(points[0], points[1], part)
+                            pares.append(pare)
 
         for pare in pares:
             pare.build_round_path()
@@ -194,6 +206,8 @@ class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
             line = QgsGeometry.fromPolylineXY([point1, point2])
             self.line_path.append(line)
 
+        self.final_path = ObjectsConverter.list_of_geometry_to_feats(self.line_path)
+
     def visualize(self):
         if self.create_debug_layers:
             pass
@@ -216,8 +230,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7893936, 47.2747051))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.79099370, 47.27427658))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428160.7, 5955549.7))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4429068.0, 5954354.7))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

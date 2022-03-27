@@ -2,12 +2,14 @@ import math
 import time
 from abc import ABC
 
+from memory_profiler import profile
 from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalFPExtension.calculations.ObjectsCalculations import length_of_path_from_feats_lines
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
@@ -30,7 +32,7 @@ class Node:
 
 class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
-        hall_width = 200
+        hall_width = 150
         super().__init__(findpathdata, debuglog, hall_width)
 
         cell_target = self.grid.difine_point(self.target_point_geometry)
@@ -82,18 +84,19 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
             cell = self.grid.define_point_using_math_search(point)
             if cell is not None:
-                if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
-                        point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
-                    point_expand = self.grid.get_point_expand_by_point(point)
-                    if (x == 1 or x == -1) and (y == 1 or y == -1):
-                        new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
-                                        node, new_x, new_y)
-                    else:
-                        new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
-                                        new_x, new_y)
-                    self.open_list.append(new_node)
-                    self.all_nodes_list.append(new_node)
-                    self.all_nodes_list_coor.append([new_x, new_y])
+                if cell.geometry is not None:
+                    if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
+                            point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
+                        point_expand = self.grid.get_point_expand_by_point(point)
+                        if (x == 1 or x == -1) and (y == 1 or y == -1):
+                            new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
+                                            node, new_x, new_y)
+                        else:
+                            new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
+                                            new_x, new_y)
+                        self.open_list.append(new_node)
+                        self.all_nodes_list.append(new_node)
+                        self.all_nodes_list_coor.append([new_x, new_y])
 
     def __add_new_neighbors(self, node):
         self.__new_neighbor(node, 1, 0)
@@ -156,6 +159,9 @@ class AStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.__find_path()
         self.debuglog.end_block("find path block")
 
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                    self.list_of_path)
+
         self.final_path = self.__get_shorter_path(self.list_of_path)
 
     def visualize(self):
@@ -186,8 +192,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7817686, 47.2712918))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7934706, 47.2731147))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4427959.83, 5955014.48))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428148.92, 5955194.46))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

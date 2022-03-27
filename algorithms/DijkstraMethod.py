@@ -75,18 +75,19 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
             cell = self.grid.define_point_using_math_search(point)
             if cell is not None:
-                if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
-                        point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
-                    point_expand = self.grid.get_point_expand_by_point(point)
-                    if point_expand is None:
-                        return None
-                    if (x == 1 or x == -1) and (y == 1 or y == -1):
-                        new_node = Node(point_expand, node.g + self.point_search_distance_diagonal, node, new_x, new_y)
-                    else:
-                        new_node = Node(point_expand, node.g + self.point_search_distance, node, new_x, new_y)
-                    self.open_list.append(new_node)
-                    self.all_nodes_list.append(new_node)
-                    self.all_nodes_list_coor.append([new_x, new_y])
+                if cell.geometry is not None:
+                    if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
+                            point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
+                        point_expand = self.grid.get_point_expand_by_point(point)
+                        if point_expand is None:
+                            return None
+                        if (x == 1 or x == -1) and (y == 1 or y == -1):
+                            new_node = Node(point_expand, node.g + self.point_search_distance_diagonal, node, new_x, new_y)
+                        else:
+                            new_node = Node(point_expand, node.g + self.point_search_distance, node, new_x, new_y)
+                        self.open_list.append(new_node)
+                        self.all_nodes_list.append(new_node)
+                        self.all_nodes_list_coor.append([new_x, new_y])
 
     def __add_new_neighbors(self, node):
         self.__new_neighbor(node, 1, 0)
@@ -154,7 +155,6 @@ class DijkstraMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.debuglog.start_block("start searching block")
         self.__start_searching()
         self.debuglog.end_block("start searching block")
-
         self.debuglog.start_block("find path block")
         self.__find_path()
         self.debuglog.end_block("find path block")
@@ -191,8 +191,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(39.7841907, 47.2721542))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(39.7851263, 47.2716111))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4426633.9, 5957487.3))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4426401.5, 5957303.1))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
