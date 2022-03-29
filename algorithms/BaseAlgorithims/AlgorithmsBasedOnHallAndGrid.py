@@ -22,9 +22,9 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
         self.step_of_the_grid = 100  # step of the grid
         self.numbers_of_geom = 0
 
+        self.time_to_succeed = findpathdata.time_to_succeed
         self.hall = Hall(self.starting_point.x(), self.starting_point.y(), self.target_point.x(), self.target_point.y(),
                          hall_width)
-        self.hall.visualize()
         if self.source_list_of_geometry_obstacles is None:
             self.list_of_obstacles_geometry = self.hall.create_list_of_obstacles(self.obstacles, self.project)
         else:
@@ -149,3 +149,9 @@ class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
                 if not cell.borders.intersection(self.hall.hall_polygon).isEmpty():
                     list_of_inter_geom = cell.set_geometry(self.list_of_obstacles_geometry)
                     self.numbers_of_geom += len(list_of_inter_geom)
+
+    def get_area_precents(self):
+        polygons_area = 0
+        for i in self.list_of_obstacles_geometry:
+            polygons_area += i.area()
+        return polygons_area / self.hall.hall_polygon.area()
