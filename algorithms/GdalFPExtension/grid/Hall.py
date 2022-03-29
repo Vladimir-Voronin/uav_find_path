@@ -142,6 +142,19 @@ class Hall:
 
         return multi_polygon_geometry
 
+    def create_multipolygon_geometry_by_hall_and_list(self, list_of_obstacles):
+        list_of_geom = []
+        for obstacle in list_of_obstacles:
+            if self.hall_polygon.distance(obstacle) == 0:
+                list_of_geom.append(obstacle)
+
+        geometry = QgsGeometry.fromPolygonXY([[QgsPointXY(1, 1), QgsPointXY(2, 2), QgsPointXY(2, 1)]])
+        for polygon in list_of_geom:
+            if polygon is not None:
+                geometry.addPartGeometry(polygon)
+        geometry.deletePart(0)
+        return geometry
+
     def create_list_of_obstacles(self, obstacles, project):
         features = obstacles.getFeatures()
         list_of_obstacles = []
@@ -223,7 +236,7 @@ class Hall:
                 point = xform.transform(point.x(), point.y())
                 list_of_points_to_line.append(point)
 
-        ######################################## HERE BEGINS Errors
+        # HERE BEGINS Errors
             create_line = QgsGeometry.fromPolylineXY(list_of_points_to_line)
             list_of_geometry.append(create_line)
         polygon = self.hall_polygon
