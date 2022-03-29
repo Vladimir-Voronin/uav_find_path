@@ -4,7 +4,7 @@ from qgis.core import *
 class FindPathData:
     def __init__(self, project: QgsProject, start_point: QgsGeometry, target_point: QgsGeometry,
                  obstacles: QgsVectorLayer, path_to_save_layers: str, create_debug_layers: bool,
-                 source_list_of_geometry_obstacles, ):
+                 source_list_of_geometry_obstacles, time_to_succeed=60):
         self.project = project
         self.start_point = start_point
         self.target_point = target_point
@@ -12,6 +12,7 @@ class FindPathData:
         self.path_to_save_layers = path_to_save_layers
         self.create_debug_layers = create_debug_layers
         self.source_list_of_geometry_obstacles = source_list_of_geometry_obstacles
+        self.time_to_succeed = time_to_succeed
 
 
 def check_if_FindPathData_is_ok(find_path_data: FindPathData):
