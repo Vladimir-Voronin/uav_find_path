@@ -8,19 +8,27 @@ from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.APFMethod import APFMethod
+from algorithms.APFMethodOptimize import APFMethodOptimize
 from algorithms.AStarMethod import AStarMethod
+from algorithms.APFMethod import APFMethod
+from algorithms.AStarMethodGrid import AStarMethodGrid
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 from algorithms.BugMethod import BugMethod
 from algorithms.DStarMethod import DStarMethod
 from algorithms.DijkstraMethod import DijkstraMethod
+from algorithms.DijkstraMethodGrid import DijkstraMethodGrid
 from algorithms.FormerMethod import FormerMethod
 from algorithms.GdalFPExtension.calculations.ObjectsCalculations import length_of_path_from_feats_lines, get_distance
 import csv
 import openpyxl
 from algorithms.RRTDirectMethod import RRTDirectMethod
 from algorithms.RandomizedRoadmapGridMethod import RandomizedRoadmapGridMethod
+from pympler import muppy
+
+from algorithms.RandomizedRoadmapMethod import RandomizedRoadmapMethod
+
+all_objects = muppy.get_objects()
 
 
 class Couple:
@@ -71,7 +79,6 @@ class CsvReader:
 
 class Test:
     @staticmethod
-    @profile
     def run_test(list_of_couples, methods_list):
         QgsApplication.setPrefixPath(r'C:\OSGEO4~1\apps\qgis', True)
         qgs = QgsApplication([], False)
@@ -86,15 +93,19 @@ class Test:
             for method in methods_list:
                 point_number = 0
                 for points in list_of_couples:
+                    print(f"start: {points.point_start}")
+                    print(f"target: {points.point_target}")
+                    print(f"point_numb: {point_number}")
+                    point_number += 1
+                    if point_number < 0:
+                        continue
                     n = 1
                     length_full = 0
                     full_time = 0
                     number_of_obstacles = 1
                     result = True
                     full_memory = 0
-                    print(f"start: {points.point_start}")
-                    print(f"target: {points.point_target}")
-                    print(f"point_numb: {point_number}")
+                    area_precent = 0
                     for i in range(n):
                         proj = QgsProject.instance()
                         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
@@ -119,14 +130,18 @@ class Test:
                             _, final_peak = tracemalloc.get_traced_memory()
                             tracemalloc.stop()
                             full_memory = final_peak - start_peak
+                            # area_precent = check.get_area_precents()
 
                         except QgsException:
                             result = False
 
-                        number_of_obstacles = check.numbers_of_geom
+                        number_of_obstacles = len(check.list_of_obstacles_geometry)
                         my_time = time.perf_counter() - my_time
                         full_time += my_time
-                        length_full += length_of_path_from_feats_lines(check.final_path)
+                        if not check.final_path:
+                            result = False
+                        else:
+                            length_full += length_of_path_from_feats_lines(check.final_path)
 
                     if not result:
                         length_full = 0
@@ -140,7 +155,6 @@ class Test:
                     print(f"{full_memory} b")
                     print(f"n obst: {number_of_obstacles}")
                     length_full /= n
-                    point_number += 1
                     print(f"Length: {length_full}")
                     worksheet.cell(current_row, 1, value=points.base_length)
                     worksheet.cell(current_row, 2, value=method.__name__)
@@ -149,10 +163,11 @@ class Test:
                     worksheet.cell(current_row, 5, value=n)
                     worksheet.cell(current_row, 6, value=full_memory)
                     worksheet.cell(current_row, 7, value=number_of_obstacles)
+                    # worksheet.cell(current_row, 8, value=area_precent)
 
                     current_row += 1
                     wookbook.save(r"C:\Users\Neptune\Desktop\results.xlsx")
-                    if full_time > 60:
+                    if full_time > 90:
                         break
         finally:
             wookbook.close()
@@ -160,7 +175,8 @@ class Test:
 
 if __name__ == '__main__':
     list_of_couples = CsvReader.get_couple_of_points(r"C:\Users\Neptune\Desktop\points_auto.csv")
-    method_list = [AStarMethod, FormerMethod, APFMethod, DijkstraMethod, BugMethod, RandomizedRoadmapGridMethod,
-                   RRTDirectMethod, DStarMethod]
+    # method_list = [AStarMethod, FormerMethod, AStarMethodGrid, DijkstraMethod, BugMethod, RandomizedRoadmapGridMethod,
+    #                RRTDirectMethod, DStarMethod, APFMethodOptimize]
+    method_list = [APFMethodOptimize]
     Test.run_test(list_of_couples, method_list)
     pass

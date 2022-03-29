@@ -25,7 +25,7 @@ class AlgorithmsBasedOnHallOnly(SearchAlgorithm, SearchMethodAbstract, ABC):
         self.multi_polygon_geometry = self.hall.create_multipolygon_geometry_by_hall_and_list(
             self.list_of_obstacles_geometry)
 
-    def __get_shorter_path(self, feats_or_geometry, increase_points=0, depth=30):
+    def _get_shorter_path(self, feats_or_geometry, increase_points=0, depth=30):
         if type(feats_or_geometry[0]) == QgsFeature:
             # get shorter path
             min_path_geometry = [i.geometry() for i in feats_or_geometry]

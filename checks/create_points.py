@@ -89,8 +89,8 @@ if __name__ == "__main__":
     pointspares_list = []
 
     start_length = 100
-    for i in range(10):
-        new_list = Creater.create_points(20, start_length, 10, 50, geometry)
+    for i in range(20):
+        new_list = Creater.create_points(10, start_length, 10, 50, geometry)
         start_length += 100
         for i in new_list:
             pointspares_list.append(i)

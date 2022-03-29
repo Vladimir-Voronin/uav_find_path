@@ -9,7 +9,7 @@ from shapely.geometry import MultiLineString
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.AStarMethod import AStarMethod
+from algorithms.AStarMethodGrid import AStarMethodGrid
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 from algorithms.GdalFPExtension.calculations.ObjectsCalculations import get_distance
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                                       False,
                                       source_list_of_geometry_obstacles)
         debug_log = DebugLog()
-        check = SeparationMethod(AStarMethod, 1000, find_path_data, debug_log)
+        check = SeparationMethod(AStarMethodGrid, 1000, find_path_data, debug_log)
         check.run()
         print(debug_log.get_info())
     my_time = (time.perf_counter() - my_time) / n

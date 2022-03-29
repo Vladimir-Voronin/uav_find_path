@@ -93,16 +93,17 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
                     if self.hall.hall_polygon.distance(point_geometry) == 0 and (cell.geometry.distance(
                             point_geometry) > self.point_search_distance_diagonal) or cell.geometry.isNull():
                         point_expand = self.grid.get_point_expand_by_point(point)
-                        if (x == 1 or x == -1) and (y == 1 or y == -1):
-                            new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
-                                            node,
-                                            node.coordinate_int_x + x, node.coordinate_int_y + y)
-                        else:
-                            new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
-                                            node.coordinate_int_x + x, node.coordinate_int_y + y)
-                        self.open_list.append(new_node)
-                        self.all_nodes_list.append(new_node)
-                        self.all_nodes_list_coor.append([new_x, new_y])
+                        if point_expand:
+                            if (x == 1 or x == -1) and (y == 1 or y == -1):
+                                new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
+                                                node,
+                                                node.coordinate_int_x + x, node.coordinate_int_y + y)
+                            else:
+                                new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
+                                                node.coordinate_int_x + x, node.coordinate_int_y + y)
+                            self.open_list.append(new_node)
+                            self.all_nodes_list.append(new_node)
+                            self.all_nodes_list_coor.append([new_x, new_y])
 
     def __update_new_neighbor(self, node, x, y):
         new_x = node.coordinate_int_x + x
@@ -206,7 +207,6 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
         self.__update_delete_intersects_nodes()
 
         self.__update_get_node_to_analys_()
-        self.visualise()
 
     def get_updated_path(self):
         raise NotImplementedError
@@ -246,7 +246,7 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
         self.all_nodes_list_coor.append([0, 0])
         while True:
             if not len(self.open_list):
-                raise Exception("Path wasn`t found")
+                raise QgsException("Path wasn`t found")
             current_node = self.__get_min_weight_node_in_open_list()
 
             if self.__check_distance_to_target_point(current_node) < self.point_search_distance_diagonal:

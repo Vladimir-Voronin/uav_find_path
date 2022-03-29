@@ -45,7 +45,6 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         super()._set_geometry_to_grid()
         self.debuglog.end_block("set geometry to grid")
 
-    @measuretime
     def __get_points(self):
         # 1 point for "self.const_square_meters" square meters
         amount_of_points = math.ceil(self.hall.square / self.const_square_meters)
@@ -72,7 +71,6 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
 
         return list_of_points
 
-    @measuretime
     def __create_graph(self, list_of_points):
         feats = GeometryPointExpand.transform_to_list_of_feats(list_of_points)
 
@@ -135,11 +133,8 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         graph = self.__create_graph(list_of_points)
 
         searcher = GdalGraphSearcher(graph, self.starting_point, self.target_point, 0)
-
         if not searcher.check_to_pave_the_way():
-            self.debuglog.info("the algorithm failed to pave the way")
-            print("the algorithm failed to pave the way")
-            return None
+            raise QgsException("the algorithm failed to pave the way")
 
         self.debuglog.info("Length of min path is: " + str(searcher.min_length_to_vertex()))
         print("Length of min path is: ", searcher.min_length_to_vertex())
@@ -149,7 +144,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
 
         self.debuglog.info("get_short_path_tree_feats")
 
-        # get min path and visualize
+        # get min path
         self.final_path = searcher.get_features_from_min_path()
 
         self.debuglog.info("get_pre_final_path")
@@ -179,18 +174,25 @@ if __name__ == '__main__':
     QgsApplication.setPrefixPath(r'C:\OSGEO4~1\apps\qgis', True)
     qgs = QgsApplication([], False)
     qgs.initQgis()
+    my_time = time.perf_counter()
+    n = 1
+    for i in range(n):
+        proj = QgsProject.instance()
+        proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428094.059841852, 5955751.246513667))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428670.438183919, 5957666.393507188))
+        path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
-    proj = QgsProject.instance()
-    proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-    point1 = QgsGeometry.fromPointXY(QgsPointXY(4428461.17, 5955316.04))
-    point2 = QgsGeometry.fromPointXY(QgsPointXY(4428705.49, 5955569.82))
-    path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
-
-    obstacles = QgsVectorLayer(path)
-    source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, proj)
-    find_path_data = FindPathData(proj, point1, point2, obstacles, r"C:\Users\Neptune\Desktop\Voronin qgis\shp", False,
-                                  source_list_of_geometry_obstacles)
-    debug_log = DebugLog()
-    check = RandomizedRoadmapGridMethod(find_path_data, debug_log)
-    check.run()
-    check.visualize()
+        obstacles = QgsVectorLayer(path)
+        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, proj)
+        find_path_data = FindPathData(proj, point1, point2, obstacles, r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
+                                      False,
+                                      source_list_of_geometry_obstacles)
+        debug_log = DebugLog()
+        check = RandomizedRoadmapGridMethod(find_path_data, debug_log)
+        my_time_full = 0
+        check.run()
+        check.visualize()
+        print(debug_log.get_info())
+    my_time = (time.perf_counter() - my_time) / n
+    print(my_time)

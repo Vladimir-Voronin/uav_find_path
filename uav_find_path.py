@@ -48,8 +48,8 @@ from .uav_find_path_dialog import UAVFindPathDialog
 
 import time
 
-from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod, RRTDirectMethod, DijkstraMethod, \
-    AStarMethod, DStarMethod, APFMethod, BugMethod, FormerMethod
+from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod, RRTDirectMethod, DijkstraMethodGrid, \
+    AStarMethodGrid, DStarMethod, APFMethod, BugMethod, FormerMethod
 
 
 class UAVFindPath:
@@ -318,10 +318,10 @@ class UAVFindPath:
         self.algorithm_dict = {
             'Randomized Roadmap Grid Method': RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod,
             'RRT method': RRTDirectMethod.RRTDirectMethod,
-            'A* Method': AStarMethod.AStarMethod,
+            'A* Method': AStarMethodGrid.AStarMethodGrid,
             'D* Method': DStarMethod.DStarMethod,
             'APF Method': APFMethod.APFMethod,
-            'Dijkstra method': DijkstraMethod.DijkstraMethod,
+            'Dijkstra method': DijkstraMethodGrid.DijkstraMethodGrid,
             'Bug Method': BugMethod.BugMethod,
             'Former Method': FormerMethod.FormerMethod}
         # add layers to "select layer"

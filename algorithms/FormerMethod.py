@@ -163,7 +163,7 @@ class AntGraph:
                 break
 
         if not is_ok:
-            raise Exception("Need more investigations in this matrix")
+            raise QgsException("Need more investigations in this matrix")
 
         points_path = []
         for i in path_by_vertex:
@@ -305,20 +305,20 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         start_v = array[split_x][split_y]
 
         ant_graph = AntGraph(array, start_v, 0.95, 0.98)
-        for i in range(10):
+        for i in range(5):
             ant_graph.investigation_from_vertex(random.choice(ant_graph.target_verteces),
                                                 len(ant_graph.all_verteces) * 5)
         ant_graph.expire()
         for i in range(len(ant_graph.all_verteces)):
-            ant_graph.investigation_from_vertex(random.choice(ant_graph.all_verteces), 200)
+            ant_graph.investigation_from_vertex(random.choice(ant_graph.all_verteces), 100)
 
         ant_graph.expire()
-        for i in range(200):
+        for i in range(50):
             ant_graph.investigation_from_vertex(ant_graph.start_vertex, len(ant_graph.all_verteces))
             ant_graph.search_from_start_to_target(len(ant_graph.all_verteces))
 
         ant_graph.expire()
-        self.visualize_ant_edges(array)
+        # self.visualize_ant_edges(array)
 
         points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
         return points_path
@@ -407,7 +407,6 @@ if __name__ == '__main__':
                                       source_list_of_geometry_obstacles)
         debug_log = DebugLog()
         check = FormerMethod(find_path_data, debug_log)
-        check.visualize()
         my_time_full = 0
         check.run()
         check.visualize()
