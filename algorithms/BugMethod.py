@@ -6,6 +6,7 @@ from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
+from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 from algorithms.GdalFPExtension.calculations import ObjectsCalculations
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
@@ -104,43 +105,20 @@ class Pare:
             lala.append(line)
 
 
-class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
+class BugMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 50
         super().__init__(findpathdata, debuglog, hall_width)
-
-        cell_starting = self.grid.difine_point(self.starting_point_geometry)
-        self.starting_point_expand = GeometryPointExpand(self.target_point, cell_starting.n_row,
-                                                         cell_starting.n_column)
-        cell_target = self.grid.difine_point(self.target_point_geometry)
-        self.target_point_expand = GeometryPointExpand(self.target_point, cell_target.n_row,
-                                                       cell_target.n_column)
 
         self.__vector_geometry = None
         self.point_path = []
         self.line_path = []
         self.final_path = []
 
-    def __create_grid(self):
-        self.debuglog.start_block("create grid")
-        super()._create_grid()
-        self.debuglog.end_block("create grid")
-
-    def __get_shorter_path(self, feats, increase_points=0):
-        self.debuglog.start_block("get shorter path")
-        result = super()._get_shorter_path(feats, increase_points)
-        self.debuglog.end_block("get shorter path")
-        return result
-
-    def __set_geometry_to_grid(self):
-        self.debuglog.start_block("set geometry to grid")
-        super()._set_geometry_to_grid()
-        self.debuglog.end_block("set geometry to grid")
-
     def __get_vector_geometry(self):
         self.__vector_geometry = QgsGeometry.fromPolylineXY([self.starting_point, self.target_point])
-        geometry = self.grid.get_multipolygon_by_points(self.starting_point_expand, self.target_point_expand)
-
+        # geometry = self.grid.get_multipolygon_by_points(self.starting_point_expand, self.target_point_expand)
+        geometry = self.hall.create_multipolygon_geometry_by_hall_and_list(self.list_of_obstacles_geometry)
         pares = []
         geometry_list = geometry.asGeometryCollection()
 
@@ -188,7 +166,6 @@ class BugMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         return ObjectsCalculations.get_distance(self.starting_point, point.start_point)
 
     def run(self):
-        self.__set_geometry_to_grid()
         pares = self.__get_vector_geometry()
         pares.sort(key=self.__sort)
 
@@ -225,13 +202,12 @@ if __name__ == '__main__':
     QgsApplication.setPrefixPath(r'C:\OSGEO4~1\apps\qgis', True)
     qgs = QgsApplication([], False)
     qgs.initQgis()
-    my_time = time.perf_counter()
     n = 1
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428160.7, 5955549.7))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4429068.0, 5954354.7))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4427147.689249892, 5955279.540250717))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4426955.309876399, 5955334.222758474))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
@@ -242,8 +218,7 @@ if __name__ == '__main__':
         debug_log = DebugLog()
         check = BugMethod(find_path_data, debug_log)
         my_time_full = 0
+        my_time = time.perf_counter()
         check.run()
-        check.visualize()
-        print(debug_log.get_info())
-    my_time = (time.perf_counter() - my_time) / n
-    print(my_time)
+        my_time = (time.perf_counter() - my_time) / n
+        print(my_time)
