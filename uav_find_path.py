@@ -21,13 +21,21 @@
  *                                                                         *
  ***************************************************************************/
 """
+import inspect
 import os
 import sys
+import threading
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
+
+
+from algorithms.GdalFPExtension.research.ResearchTest import Test
+from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalFPExtension.research.ResearchPoint import PointsCreater
+
 import qgis
-from PyQt5.QtWidgets import QFileDialog
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
 from qgis.PyQt.QtWidgets import QAction, QMainWindow, QDialog
@@ -35,6 +43,7 @@ from qgis.core import *
 from qgis.gui import *
 import os.path
 import copy
+import importlib
 
 from ModuleInstruments.Converter import Converter
 
@@ -92,7 +101,8 @@ class UAVFindPath:
         self.start_point = None
         self.target_point = None
         self.path_to_save_layers = None
-        self.algorithm_dict = {}
+        self.method_address = None
+        self.method = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -208,6 +218,11 @@ class UAVFindPath:
         self.path_to_save_layers = QFileDialog.getExistingDirectory(self.dlg, caption='Select folder')
         self.dlg.textEdit_save_folder.setText(self.path_to_save_layers)
 
+    def choose_module_file(self):
+        file_filter = "Module file (*.py);"
+        self.method_address = QFileDialog.getOpenFileName(self.dlg, caption='Select module', filter=file_filter)[0]
+        self.dlg.textEdit_method_address.setText(self.method_address)
+
     def set_obstacle_layer(self):
         layers = self.project.layerTreeRoot().children()
         selected_layer_index = self.dlg.comboBox_select_obstacles.currentIndex() - 1
@@ -215,6 +230,9 @@ class UAVFindPath:
             self.obstacle_layer = layers[selected_layer_index].layer()
 
     def point_button_clicked(self, number_of_point):
+        if not self.layer_verofication():
+            return
+
         dial = QDialog(None)
         dial.show()
         dial.setModal(True)
@@ -253,10 +271,59 @@ class UAVFindPath:
         self.dlg.comboBox_select_obstacles.addItem("")
         self.dlg.comboBox_select_obstacles.addItems([layer.name() for layer in layers])
 
-    def press_run(self):
-        debug_log = DebugLog()
-        debug_log.info("Button 'Run' was pressed")
+    def error_call(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Critical)
+        msg.setText(message)
+        msg.setWindowTitle("Error")
+        msg.exec_()
 
+    def layer_verofication(self):
+        if self.obstacle_layer:
+            return True
+        self.error_call("Choose obstacle layer please")
+
+    def verification(self):
+        # Handle layers
+        self.layer_verofication()
+
+        # Handle points of square
+        s_point = None
+        t_point = None
+        try:
+            s_point = QgsPointXY(float(self.dlg.textEdit_start_point_x.toPlainText()),
+                                 float(self.dlg.textEdit_start_point_y.toPlainText()))
+            t_point = QgsPointXY(float(self.dlg.textEdit_target_point_x.toPlainText()),
+                                 float(self.dlg.textEdit_target_point_y.toPlainText()))
+        except ValueError:
+            self.error_call("Data entry error")
+            return False
+
+        # self.error_call(f"{s_point.x()}, {t_point.x()}")
+        if s_point.x() > t_point.x() or s_point.y() > t_point.y():
+            self.error_call("""Wrong points. Please choose this point like that:
+            
+                                                        p2
+                                                        
+                                
+                                
+                                p1"""
+                            )
+            return False
+
+        # Handle save folder
+        if self.dlg.textEdit_save_folder.toPlainText() is None or self.dlg.textEdit_save_folder.toPlainText() == "":
+            self.error_call("Enter save folder, please")
+            return False
+
+        # Handle method choosing
+        if self.dlg.textEdit_method_address.toPlainText() is None or self.dlg.textEdit_method_address.toPlainText() == "":
+            self.error_call("Enter your method, please")
+            return False
+
+        return True
+
+    def set_main_variables(self):
         # Reading data from interface
         self.start_point = QgsGeometry.fromPointXY(
             QgsPointXY(float(self.dlg.textEdit_start_point_x.toPlainText()),
@@ -265,28 +332,118 @@ class UAVFindPath:
             QgsPointXY(float(self.dlg.textEdit_target_point_x.toPlainText()),
                        float(self.dlg.textEdit_target_point_y.toPlainText())))
 
-        debug_log.info(f"start_point x = {float(self.dlg.textEdit_start_point_x.toPlainText())}")
-        debug_log.info(f"start_point y = {float(self.dlg.textEdit_start_point_y.toPlainText())}")
-        debug_log.info(f"target_point x = {float(self.dlg.textEdit_target_point_x.toPlainText())}")
-        debug_log.info(f"target_point y = {float(self.dlg.textEdit_target_point_y.toPlainText())}")
-
         self.path_to_save_layers = self.dlg.textEdit_save_folder.toPlainText()
 
-        debug_log.info(f"path to save layers = {self.path_to_save_layers}")
+        # Import module and get method
+        spec = importlib.util.spec_from_file_location("module_to_use",
+                                                      self.method_address)
+        MethodModule = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(MethodModule)
 
-        layer_to_algortithm = QgsVectorLayer(self.obstacle_layer.source(), self.obstacle_layer.name(),
-                                             self.obstacle_layer.providerType())
-        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(layer_to_algortithm, self.project)
+        correct = False
+        for name, obj in inspect.getmembers(MethodModule):
+            if inspect.isclass(obj):
+                if str(obj).find("module_to_use") != -1 and str(obj).find("Method") != -1:
+                    self.method = obj
+                    correct = True
+                    break
+        if not correct:
+            self.error_call("This module file is not correct.")
+            return False
+        return True
 
-        debug_log.info(f"len of source_list_of_geometry_obstacles = {len(source_list_of_geometry_obstacles)}")
+    def get_geometry(self):
+        # create geometry obstacle
+        obstacles = QgsVectorLayer(self.obstacle_layer.source(), self.obstacle_layer.name(),
+                                   self.obstacle_layer.providerType())
+        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, self.project)
+
+        list_of_geom = []
+        for polygon in source_list_of_geometry_obstacles:
+            list_of_geom.append(polygon)
+
+        number_of_polyg = len(list_of_geom)
+        print(number_of_polyg)
+
+        geometry = QgsGeometry.fromPolygonXY([[QgsPointXY(1, 1), QgsPointXY(2, 2), QgsPointXY(2, 1)]])
+        for polygon in list_of_geom:
+            if polygon is not None:
+                geometry.addPartGeometry(polygon)
+        geometry.deletePart(0)
+        return geometry
+
+    def create_points(self, geometry, layer_with_obstacles):
+        # general variables
+        the_max_possible_distance = 2500
+        numbers_of_points_for_each_iteration = 20
+        start_length = 100
+        step = 100
+        access_min = 10
+        access_max = 50
+
+        # get max distance for this squeare
+        s_point = self.start_point.asPoint()
+        t_point = self.target_point.asPoint()
+
+        # need to change "project" to "QgsProject.instance" when import to module
+        transformcontext = self.project.transformContext()
+        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
+        xform = QgsCoordinateTransform(layer_with_obstacles.crs(), general_projection, transformcontext)
+
+        # type: QgsPointXY
+        s_point = xform.transform(s_point)
+        t_point = xform.transform(t_point)
+
+        max_distance = PointsCreater.get_max_research_distance(s_point.x(), s_point.y(), t_point.x(), t_point.y())
+        if max_distance < start_length:
+            self.error_call("Too small square. Please choose another area")
+
+        max_distance = the_max_possible_distance if max_distance >= the_max_possible_distance else max_distance
+        self.error_call(f"{max_distance}")
+
+        # add point pares
+        pointspares_list = []
+
+        self.dlg.progressBar.setMinimum(0)
+        self.dlg.progressBar.setMaximum(int(max_distance / step))
+        for i in range(int(max_distance / step)):
+            self.dlg.label_progress.setText(f"Put points on distance {(i + 1) * step}")
+            new_list = PointsCreater.create_points(numbers_of_points_for_each_iteration, start_length, access_min,
+                                                   access_max, geometry, s_point.x(), s_point.y(), t_point.x(),
+                                                   t_point.y())
+            start_length += step
+            self.dlg.progressBar.setValue(i + 1)
+            for i in new_list:
+                pointspares_list.append(i)
+
+        return pointspares_list
+
+    def press_run(self):
+        is_ok = self.verification()
+        if not is_ok:
+            return
+
+        is_ok = self.set_main_variables()
+        if not is_ok:
+            return
+        geometry = self.get_geometry()
+
+        layer_with_obstacles = QgsVectorLayer(self.obstacle_layer.source(), self.obstacle_layer.name(),
+                                              self.obstacle_layer.providerType())
+        points_pares = self.create_points(geometry, layer_with_obstacles)
+
+        Test.run_test_from_plugin(points_pares, self.method, self.project, layer_with_obstacles,
+                                  self.path_to_save_layers)
+        return
+
+        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(layer_with_obstacles, self.project)
 
         find_path_data = FindPathData(self.project, self.start_point, self.target_point,
-                                      layer_to_algortithm,
+                                      layer_with_obstacles,
                                       self.path_to_save_layers, self.dlg.checkBox_create_debug_layers.isChecked(),
                                       source_list_of_geometry_obstacles)
 
         if check_if_FindPathData_is_ok(find_path_data):
-            debug_log.info("FindPathData is ok!")
             my_algorithm = self.algorithm_dict[self.dlg.comboBox_select_search_method.currentText()]
 
             current_algorithm = my_algorithm(find_path_data, debug_log)
@@ -310,26 +467,14 @@ class UAVFindPath:
             self.dlg.pushButton_target_point.clicked.connect(lambda: self.point_button_clicked(2))
             self.dlg.comboBox_select_obstacles.currentIndexChanged.connect(lambda: self.set_obstacle_layer())
             self.dlg.pushButton_save_folder.clicked.connect(lambda: self.choose_directory())
+            self.dlg.pushButton_method_address.clicked.connect(lambda: self.choose_module_file())
             self.dlg.pushButton_run.clicked.connect(lambda: self.press_run())
 
         self.project = QgsProject.instance()
 
-        # dict of algorithms
-        self.algorithm_dict = {
-            'Randomized Roadmap Grid Method': RandomizedRoadmapGridMethod.RandomizedRoadmapGridMethod,
-            'RRT method': RRTDirectMethod.RRTDirectMethod,
-            'A* Method': AStarMethodGrid.AStarMethodGrid,
-            'D* Method': DStarMethod.DStarMethod,
-            'APF Method': APFMethod.APFMethod,
-            'Dijkstra method': DijkstraMethodGrid.DijkstraMethodGrid,
-            'Bug Method': BugMethod.BugMethod,
-            'Former Method': FormerMethod.FormerMethod}
         # add layers to "select layer"
         self.update_combo_box_layers()
 
-        # add search methods to "select search methods
-        self.dlg.comboBox_select_search_method.clear()
-        self.dlg.comboBox_select_search_method.addItems(self.algorithm_dict.keys())
         # show the dialog
         self.dlg.show()
 
