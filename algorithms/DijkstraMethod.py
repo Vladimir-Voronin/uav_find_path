@@ -9,6 +9,7 @@ from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 
@@ -94,10 +95,12 @@ class DijkstraMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, ABC):
         self.open_list.append(start_node)
         self.all_nodes_list.append(start_node)
         self.all_nodes_list_coor.append([0, 0])
-        i = 0
-        while True:
+
+        full_time = 0
+        while full_time < self.time_to_succeed:
+            time_current = time.perf_counter()
             if not len(self.open_list):
-                raise QgsException("Path wasn`t found")
+                raise FailFindPathException("Path wasn`t found")
             current_node = self.__get_min_weight_node_in_open_list()
             if current_node.point is None:
                 self.open_list.remove(current_node)
@@ -115,10 +118,10 @@ class DijkstraMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, ABC):
             self.closed_list.append(current_node)
 
             self.__add_new_neighbors(current_node)
-            i += 1
-        points_geom = [QgsGeometry.fromPointXY(x.point) for x in self.all_nodes_list]
-        Visualizer.update_layer_by_geometry_objects(
-            r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp", points_geom)
+
+            full_time += time.perf_counter() - time_current
+        else:
+            raise TimeToSucceedException("Search is out of time")
 
     def run(self):
         self.debuglog.start_block("start searching block")

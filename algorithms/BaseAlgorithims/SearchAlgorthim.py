@@ -34,6 +34,7 @@ class SearchAlgorithm(SearchMethod, ABC):
                                                                           self.starting_point.y()))
         self.target_point_geometry = QgsGeometry.fromPointXY(QgsPointXY(self.target_point.x(),
                                                                         self.target_point.y()))
+        self.time_to_succeed = findpathdata.time_to_succeed
         self.debuglog = debuglog
 
     def run(self):

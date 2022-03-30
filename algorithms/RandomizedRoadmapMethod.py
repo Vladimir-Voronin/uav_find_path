@@ -9,6 +9,7 @@ from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
 from algorithms.GdalFPExtension.calculations.Graphs import GdalGraphSearcher
+from algorithms.GdalFPExtension.exceptions.MethodsException import TimeToSucceedException, FailFindPathException
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.methodsInterfaces.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Decorators import measuretime
@@ -94,7 +95,10 @@ class RandomizedRoadmapMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, Search
         feats_line = []
         id_number = -1
 
+        full_time = 0
         for point in feats:
+            time_current = time.perf_counter()
+
             nearest = index.nearestNeighbor(point.geometry().asPoint(), self.const_sight_of_points)
             nearest.pop(0)
 
@@ -121,6 +125,11 @@ class RandomizedRoadmapMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, Search
                         feat.setGeometry(line)
                         feats_line.append(feat)
                         qgs_graph.addEdge(point1, point2, [QgsNetworkDistanceStrategy().cost(line.length(), feat)])
+
+            full_time += time.perf_counter() - time_current
+            if full_time > self.time_to_succeed:
+                raise TimeToSucceedException("Search is out of time")
+
         # duplicate edge backwords
         for pares in list_to_duplicate_backwords:
             point1 = pares[0]
@@ -144,7 +153,7 @@ class RandomizedRoadmapMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, Search
         searcher = GdalGraphSearcher(graph, self.starting_point, self.target_point, 0)
 
         if not searcher.check_to_pave_the_way():
-            raise QgsException("the algorithm failed to pave the way")
+            raise FailFindPathException("Path wasn`t found")
 
         # get the shortest tree graph
         self.min_short_path_tree_feats = searcher.get_shortest_tree_features_list()

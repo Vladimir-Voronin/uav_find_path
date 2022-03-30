@@ -10,6 +10,7 @@ from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
@@ -252,7 +253,9 @@ class APFMethodOptimize(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
         current_node = start_node
         i = 0
-        while True:
+        full_time = 0
+        while full_time < self.time_to_succeed:
+            time_current = time.perf_counter()
             self.all_nodes_list_coor.append([current_node.coordinate_int_x, current_node.coordinate_int_y])
             a = self.__check_distance_to_target_point(current_node)
             if self.__check_distance_to_target_point(current_node) < self.point_search_distance_diagonal:
@@ -277,8 +280,15 @@ class APFMethodOptimize(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
 
             current_node = self.__get_next_point_by_angle(current_node, angle)
             if not current_node:
-                raise QgsException("Failed to pave the way")
+                raise FailFindPathException("Path wasn`t found")
             self.path_list_points.append(current_node)
+
+            full_time += time.perf_counter() - time_current
+        else:
+            raise TimeToSucceedException("Search is out of time")
+
+        if not self.is_succes:
+            raise FailFindPathException("Path wasn`t found")
 
     def run(self):
         self.debuglog.start_block("set geometry to the grid block")
@@ -294,8 +304,6 @@ class APFMethodOptimize(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.debuglog.start_block("__find_path")
         self.__find_path()
         self.debuglog.end_block("__find_path")
-        if not self.is_succes:
-            return
 
         self.__create_path_from_node_path()
 

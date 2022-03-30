@@ -15,6 +15,7 @@ from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
@@ -163,7 +164,7 @@ class AntGraph:
                 break
 
         if not is_ok:
-            raise QgsException("Need more investigations in this matrix")
+            raise FailFindPathException("Need more investigations in this matrix")
 
         points_path = []
         for i in path_by_vertex:
@@ -265,7 +266,7 @@ class FormerMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
             self.__add_new_neighbors_to_surface(current_node)
 
         if not the_end_is_achived:
-            raise QgsException("Target point cant be achieved with those paramets")
+            raise FailFindPathException("Target point cant be achieved with those paramets")
 
     def __find_path(self):
         min_index_x = min(self.all_nodes_list, key=attrgetter('coordinate_int_x')).coordinate_int_x + 1

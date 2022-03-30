@@ -9,6 +9,7 @@ from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.DynamicAlgorithm import DynamicAlgorithm
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalFPExtension.exceptions.MethodsException import TimeToSucceedException, FailFindPathException
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
@@ -244,9 +245,11 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
         self.open_list.append(self.start_node)
         self.all_nodes_list.append(self.start_node)
         self.all_nodes_list_coor.append([0, 0])
-        while True:
+        full_time = 0
+        while full_time < self.time_to_succeed:
+            time_current = time.perf_counter()
             if not len(self.open_list):
-                raise QgsException("Path wasn`t found")
+                raise FailFindPathException("Path wasn`t found")
             current_node = self.__get_min_weight_node_in_open_list()
 
             if self.__check_distance_to_target_point(current_node) < self.point_search_distance_diagonal:
@@ -261,6 +264,9 @@ class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm
             self.closed_list.append(current_node)
 
             self.__add_new_neighbors(current_node)
+            full_time += time.perf_counter() - time_current
+        else:
+            raise TimeToSucceedException("Search is out of time")
 
     def run(self):
         self.debuglog.start_block("set geometry to the grid block")

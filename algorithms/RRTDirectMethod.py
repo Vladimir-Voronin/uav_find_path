@@ -10,6 +10,7 @@ from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
@@ -158,14 +159,21 @@ class RRTDirectMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
         self.point_analysis_list.append(start_point_node)
 
         is_ok = False
-        while time.perf_counter() - self.time_of_work_starts < self.time_stop:
+        full_time = 0
+        while full_time < self.time_to_succeed:
+            time_current = time.perf_counter()
+
             self.__handle_list_of_nodes()
             self.__one_step_of_the_loop()
             if self.tree_reached_target:
                 is_ok = True
                 break
+            full_time += time.perf_counter() - time_current
+        else:
+            raise TimeToSucceedException("Search is out of time")
+
         if not is_ok:
-            raise QgsException("RRTDirectMethod failed to search result")
+            raise FailFindPathException("RRTDirectMethod failed to search result")
 
     def run(self):
         self.debuglog.start_block("set geometry to the grid block")

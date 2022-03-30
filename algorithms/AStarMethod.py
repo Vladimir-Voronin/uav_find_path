@@ -11,6 +11,7 @@ from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBas
 from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
 from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 from algorithms.GdalFPExtension.calculations.ObjectsCalculations import length_of_path_from_feats_lines
+from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
 from algorithms.GdalFPExtension.transformations.AngleDistanceTransform import AngleDistanceTransform
@@ -104,7 +105,10 @@ class AStarMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, ABC):
         self.open_list.append(start_node)
         self.all_nodes_list.append(start_node)
         self.all_nodes_list_coor.append([0, 0])
-        while True:
+
+        full_time = 0
+        while full_time < self.time_to_succeed:
+            time_current = time.perf_counter()
             if not len(self.open_list):
                 break
             current_node = self.__get_min_weight_node_in_open_list()
@@ -122,8 +126,12 @@ class AStarMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, ABC):
 
             self.__add_new_neighbors(current_node)
 
+            full_time += time.perf_counter() - time_current
+        else:
+            raise TimeToSucceedException("Search is out of time")
+
         if not self.is_succes:
-            raise QgsException("Path wasn`t found")
+            raise FailFindPathException("Path wasn`t found")
 
     def run(self):
         self.debuglog.start_block("start searching block")

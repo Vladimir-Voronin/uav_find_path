@@ -8,6 +8,7 @@ from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.GdalFPExtension.calculations.Graphs import GdalGraphSearcher
+from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from algorithms.GdalFPExtension.methodsInterfaces.SearchMethod import SearchMethodAbstract
 from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
 from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
@@ -87,8 +88,10 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
         # list_of_lines contain type QgsGeometry
         list_of_lines = []
 
-        self.debuglog.start_block("graph")
+        full_time = 0
         for id_1, point in enumerate(feats):
+            time_current = time.perf_counter()
+
             nearest = index.nearestNeighbor(point.geometry().asPoint(), self.const_sight_of_points)
             nearest.pop(0)
             # iterates over nearest points, try to create line
@@ -113,6 +116,10 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
                         qgs_graph.addEdge(id_1, nearest_point_id,
                                           [QgsNetworkDistanceStrategy().cost(line.length(), feat)])
 
+            full_time += time.perf_counter() - time_current
+            if full_time > self.time_to_succeed:
+                raise TimeToSucceedException("Search is out of time")
+
         for pares in list_to_duplicate_backwards:
             point1 = pares[0]
             point2 = pares[1]
@@ -134,7 +141,7 @@ class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstr
 
         searcher = GdalGraphSearcher(graph, self.starting_point, self.target_point, 0)
         if not searcher.check_to_pave_the_way():
-            raise QgsException("the algorithm failed to pave the way")
+            raise FailFindPathException("Path wasn`t found")
 
         self.debuglog.info("Length of min path is: " + str(searcher.min_length_to_vertex()))
         print("Length of min path is: ", searcher.min_length_to_vertex())
