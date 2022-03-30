@@ -178,5 +178,6 @@ if __name__ == '__main__':
         check.run()
         check.visualize()
         print(debug_log.get_info())
+
     my_time = (time.perf_counter() - my_time) / n
     print(my_time)
