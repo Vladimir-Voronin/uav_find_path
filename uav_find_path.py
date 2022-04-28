@@ -30,9 +30,9 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 
 
-from algorithms.GdalFPExtension.research.ResearchTest import Test
-from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
-from algorithms.GdalFPExtension.research.ResearchPoint import PointsCreater
+from algorithms.GdalUAV.research.ResearchTest import Test
+from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalUAV.research.ResearchPoint import PointsCreater
 
 import qgis
 from PyQt5.QtWidgets import QFileDialog, QMessageBox

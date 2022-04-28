@@ -4,10 +4,10 @@ from qgis._core import QgsGeometry, QgsPointXY, QgsFeature
 
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
-from algorithms.GdalFPExtension.grid.Hall import Hall
-from algorithms.GdalFPExtension.methodsInterfaces.SearchMethod import SearchMethodAbstract
+from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.processing.Converter import ObjectsConverter
+from algorithms.GdalUAV.processing.grid.Hall import Hall
+from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
 
 
 class AlgorithmsBasedOnHallOnly(SearchAlgorithm, SearchMethodAbstract, ABC):

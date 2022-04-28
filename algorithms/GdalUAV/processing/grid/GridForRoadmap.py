@@ -1,9 +1,9 @@
 from qgis.core import *
-from algorithms.GdalFPExtension.grid.CellOfTheGrid import CellOfTheGrid
+from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid
 import numpy as np
 
-from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
-from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
 class GridForRoadmap:

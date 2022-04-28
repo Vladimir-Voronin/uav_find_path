@@ -1,24 +1,21 @@
 import math
 import random
-from _ctypes import sizeof
 
 import numpy as np
 import time
 from abc import ABC
 from operator import attrgetter
 
-import sys
-from memory_profiler import profile
 from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException
-from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
-from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
-from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
+from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.exceptions.MethodsException import FailFindPathException
+from algorithms.GdalUAV.processing.Converter import ObjectsConverter
+from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
 class NodeFormer:

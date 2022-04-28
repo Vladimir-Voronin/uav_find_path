@@ -1,6 +1,6 @@
 import pickle
 from qgis.core import *
-from algorithms.GdalFPExtension.serialization.GdalPreSerializeObjects import QgsPointXYSerializable, \
+from algorithms.GdalUAV.serialization.GdalPreSerializeObjects import QgsPointXYSerializable, \
     QgsPolygonSerializable, QgsVertexSerializable, QgsEdgeSerializable, QgsGraphSerializable
 
 

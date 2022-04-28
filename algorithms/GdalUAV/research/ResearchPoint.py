@@ -16,22 +16,16 @@ class PointsPare:
         self.y2 = y2
 
 
-class Creater:
+class PointsCreater:
     @staticmethod
-    def create_points(number_of_points, length, access, more_access, obstacle):
-        left_x = 4426099.4
-        right_x = 4429344.6
-        bottom_y = 5954710.6
-        top_y = 5957673.6
-
+    def create_points(number_of_points, length, access_min, access_max, obstacle, left_x, bottom_y, right_x, top_y):
         result_list = []
         while len(result_list) != number_of_points:
             r1 = random.random()
             new_x = left_x + (right_x - left_x) * r1
             r2 = random.random()
             new_y = bottom_y + (top_y - bottom_y) * r2
-
-            if not access <= obstacle.distance(QgsGeometry.fromPointXY(QgsPointXY(new_x, new_y))) <= more_access:
+            if not access_min <= obstacle.distance(QgsGeometry.fromPointXY(QgsPointXY(new_x, new_y))) <= access_max:
                 continue
             else:
                 while True:
@@ -42,8 +36,8 @@ class Creater:
                     Yp = length * math.cos(rad)
 
                     if left_x <= new_x + Xp <= right_x and bottom_y <= new_y + Yp <= top_y:
-                        if not access <= obstacle.distance(
-                                QgsGeometry.fromPointXY(QgsPointXY(new_x + Xp, new_y + Yp))) <= more_access:
+                        if not access_min <= obstacle.distance(
+                                QgsGeometry.fromPointXY(QgsPointXY(new_x + Xp, new_y + Yp))) <= access_max:
                             continue
                         else:
                             result_list.append(PointsPare(new_x, new_y, new_x + Xp, new_y + Yp))
@@ -52,6 +46,16 @@ class Creater:
                         continue
 
         return result_list
+
+    @staticmethod
+    def get_max_research_distance(left_x, bottom_y, right_x, top_y):
+        x_full_difference = right_x - left_x
+        y_full_difference = top_y - bottom_y
+        result = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
+        result = (result * result) ** 0.5
+        result /= 2
+        integer_div = result // 100
+        return 100 * integer_div
 
 
 if __name__ == "__main__":
@@ -88,7 +92,7 @@ if __name__ == "__main__":
 
     start_length = 100
     for i in range(20):
-        new_list = Creater.create_points(10, start_length, 10, 50, geometry)
+        new_list = PointsCreater.create_points(10, start_length, 10, 50, geometry)
         start_length += 100
         for i in new_list:
             pointspares_list.append(i)

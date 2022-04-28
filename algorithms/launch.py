@@ -1,32 +1,18 @@
 import math
 import time
 import tracemalloc
-from abc import ABC
 
-from memory_profiler import profile
 from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.APFMethodOptimize import APFMethodOptimize
-from algorithms.AStarMethod import AStarMethod
 from algorithms.APFMethod import APFMethod
-from algorithms.AStarMethodGrid import AStarMethodGrid
-from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.BugMethod import BugMethod
-from algorithms.DStarMethod import DStarMethod
-from algorithms.DijkstraMethod import DijkstraMethod
-from algorithms.DijkstraMethodGrid import DijkstraMethodGrid
-from algorithms.FormerMethod import FormerMethod
-from algorithms.GdalFPExtension.calculations.ObjectsCalculations import length_of_path_from_feats_lines, get_distance
+from algorithms.GdalUAV.processing.calculations.ObjectsCalculations import length_of_path_from_feats_lines
 import csv
 import openpyxl
-from algorithms.RRTDirectMethod import RRTDirectMethod
-from algorithms.RandomizedRoadmapGridMethod import RandomizedRoadmapGridMethod
-from pympler import muppy
 
-from algorithms.RandomizedRoadmapMethod import RandomizedRoadmapMethod
+from algorithms.GdalUAV.exceptions.MethodsException import TimeToSucceedException, FailFindPathException
+from pympler import muppy
 
 all_objects = muppy.get_objects()
 
@@ -132,7 +118,13 @@ class Test:
                             full_memory = final_peak - start_peak
                             # area_precent = check.get_area_precents()
 
-                        except QgsException:
+                        except TimeToSucceedException as t:
+                            print(t.txt)
+                            print("")
+                            result = False
+                        except FailFindPathException as t:
+                            print(t.txt)
+                            print("Fail")
                             result = False
 
                         number_of_obstacles = len(check.list_of_obstacles_geometry)
@@ -176,7 +168,7 @@ class Test:
 if __name__ == '__main__':
     list_of_couples = CsvReader.get_couple_of_points(r"C:\Users\Neptune\Desktop\points_auto.csv")
     # method_list = [AStarMethod, FormerMethod, AStarMethodGrid, DijkstraMethod, BugMethod, RandomizedRoadmapGridMethod,
-    #                RRTDirectMethod, DStarMethod, APFMethodOptimize]
-    method_list = [APFMethodOptimize]
+    #                RRTDirectMethod, DStarMethod, APFMethodOptimize, APFMethod]
+    method_list = [APFMethod]
     Test.run_test(list_of_couples, method_list)
     pass

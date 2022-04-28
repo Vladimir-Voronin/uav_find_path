@@ -4,12 +4,12 @@ from qgis.core import *
 
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
-from algorithms.GdalFPExtension.grid.GridForRoadmap import GridForRoadmap
-from algorithms.GdalFPExtension.grid.CellOfTheGrid import CellOfTheGrid
-from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
-from algorithms.GdalFPExtension.grid.Hall import Hall
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.processing.Converter import ObjectsConverter
+from algorithms.GdalUAV.processing.grid.GridForRoadmap import GridForRoadmap
+from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid
+from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalUAV.processing.grid.Hall import Hall
+from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
 import math
 
 

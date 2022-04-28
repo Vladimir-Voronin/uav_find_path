@@ -1,22 +1,18 @@
 import math
-import random
 import time
 from abc import ABC
 
 from qgis.core import *
-from shapely.geometry import MultiLineString
 
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
 from algorithms.AStarMethodGrid import AStarMethodGrid
-from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.GdalFPExtension.calculations.ObjectsCalculations import get_distance
-from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
-from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
-from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
-from algorithms.RRTDirectMethod import RRTDirectMethod
+from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
+from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.processing.calculations.ObjectsCalculations import get_distance
+from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
 class SeparationMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):

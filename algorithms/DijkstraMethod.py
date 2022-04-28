@@ -6,12 +6,11 @@ from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
-from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
-from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
+from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
+from algorithms.GdalUAV.processing.Converter import ObjectsConverter
+from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
 class Node:

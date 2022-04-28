@@ -7,15 +7,14 @@ from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalFPExtension.calculations.Graphs import GdalGraphSearcher
-from algorithms.GdalFPExtension.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
-from algorithms.GdalFPExtension.methodsInterfaces.SearchMethod import SearchMethodAbstract
-from algorithms.GdalFPExtension.gdalObjects.Converter import ObjectsConverter
-from algorithms.GdalFPExtension.qgis.visualization.Visualizer import Visualizer
-from algorithms.GdalFPExtension.gdalObjects.GeometryPointExpand import GeometryPointExpand
-from algorithms.GdalFPExtension.gdalObjects.RandomizeFunctions import RandomizeFunctions
-from algorithms.addition.Decorators import measuretime
-from algorithms.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
+from algorithms.GdalUAV.processing.calculations.Graphs import GdalGraphSearcher
+from algorithms.GdalUAV.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
+from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
+from algorithms.GdalUAV.processing.Converter import ObjectsConverter
+from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
+from algorithms.GdalUAV.processing.calculations.RandomizeFunctions import RandomizeFunctions
+from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
 import math
 
 

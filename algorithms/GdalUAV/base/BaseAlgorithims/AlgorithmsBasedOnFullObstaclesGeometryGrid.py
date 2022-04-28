@@ -4,9 +4,9 @@ from abc import ABC
 from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
-from algorithms.GdalFPExtension.grid.CellOfTheGrid import CellOfTheGrid
-from algorithms.GdalFPExtension.grid.GridForRoadmap import GridForRoadmap
+from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid
+from algorithms.GdalUAV.processing.grid.GridForRoadmap import GridForRoadmap
 import time
 
 
