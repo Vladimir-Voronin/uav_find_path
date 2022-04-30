@@ -5,8 +5,8 @@ from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
-from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.base.MethodBasedOnHallOnly import MethodBasedOnHallOnly
+from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.processing.calculations import ObjectsCalculations
 from algorithms.GdalUAV.processing.Converter import ObjectsConverter
 from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
@@ -103,7 +103,7 @@ class Pare:
             lala.append(line)
 
 
-class BugMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, ABC):
+class BugMethod(MethodBasedOnHallOnly, SearchMethodBase, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 50
         super().__init__(findpathdata, debuglog, hall_width)

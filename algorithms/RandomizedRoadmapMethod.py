@@ -6,14 +6,14 @@ from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallOnly import AlgorithmsBasedOnHallOnly
+from algorithms.GdalUAV.base.MethodBasedOnHallOnly import MethodBasedOnHallOnly
 from algorithms.GdalUAV.processing.calculations.Graphs import GdalGraphSearcher
 from algorithms.GdalUAV.exceptions.MethodsException import TimeToSucceedException, FailFindPathException
 from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
 from algorithms.addition.Decorators import measuretime
 from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 from algorithms.GdalUAV.processing.calculations.RandomizeFunctions import RandomizeFunctions
-from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 import math
 import time
 import sys
@@ -21,7 +21,7 @@ import sys
 sys.path.insert(0, r'C:\OSGeo4W64\apps\Python37\lib')
 
 
-class RandomizedRoadmapMethod(AlgorithmsBasedOnHallOnly, SearchAlgorithm, SearchMethodAbstract, ABC):
+class RandomizedRoadmapMethod(MethodBasedOnHallOnly, SearchMethodBase, SearchMethodAbstract, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 150
         super().__init__(findpathdata, debuglog, hall_width)

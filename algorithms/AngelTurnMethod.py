@@ -6,11 +6,11 @@ from ModuleInstruments.FindPathData import FindPathData
 from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
 from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 from algorithms.addition.Decorators import measuretime
-from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
+from algorithms.GdalUAV.base.MethodBasedOnHallAndGrid import MethodBasedOnHallAndGrid
 from algorithms.addition.MathFunctions import *
 
 
-class AngleTurnMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract):
+class AngleTurnMethod(MethodBasedOnHallAndGrid, SearchMethodAbstract):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         super().__init__(findpathdata, debuglog)
         self.path_list = []

@@ -6,9 +6,9 @@ from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.GdalUAV.base.BaseAlgorithims.DynamicAlgorithm import DynamicAlgorithm
-from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.base.MethodBasedOnHallAndGrid import MethodBasedOnHallAndGrid
+from algorithms.GdalUAV.Interfaces.DynamicMethod import DynamicMethod
+from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.exceptions.MethodsException import TimeToSucceedException, FailFindPathException
 from algorithms.GdalUAV.processing.Converter import ObjectsConverter
 from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
@@ -29,7 +29,7 @@ class Node:
         self.next_node = None
 
 
-class DStarMethod(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, DynamicAlgorithm, ABC):
+class DStarMethod(MethodBasedOnHallAndGrid, SearchMethodBase, DynamicMethod, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 150
         super().__init__(findpathdata, debuglog, hall_width)

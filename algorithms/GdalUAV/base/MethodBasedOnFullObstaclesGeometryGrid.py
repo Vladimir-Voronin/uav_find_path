@@ -4,13 +4,13 @@ from abc import ABC
 from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid
 from algorithms.GdalUAV.processing.grid.GridForRoadmap import GridForRoadmap
 import time
 
 
-class AlgorithmsBasedOnFullObstaclesGeometryGrid(SearchAlgorithm, ABC):
+class MethodBasedOnFullObstaclesGeometryGrid(SearchMethodBase, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         super().__init__(findpathdata, debuglog)
         self.list_of_obstacles_geometry = findpathdata.source_list_of_geometry_obstacles

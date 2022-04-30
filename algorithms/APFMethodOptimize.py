@@ -7,8 +7,8 @@ from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.base.MethodBasedOnHallAndGrid import MethodBasedOnHallAndGrid
+from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from algorithms.GdalUAV.processing.Converter import ObjectsConverter
 from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
@@ -53,7 +53,7 @@ class LinkedAngle:
         self.add_y = None
 
 
-class APFMethodOptimize(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
+class APFMethodOptimize(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 100
         super().__init__(findpathdata, debuglog, hall_width)

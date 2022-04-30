@@ -14,11 +14,11 @@ from algorithms.GdalUAV.processing.Converter import ObjectsConverter
 from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalUAV.processing.calculations.RandomizeFunctions import RandomizeFunctions
-from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
+from algorithms.GdalUAV.base.MethodBasedOnHallAndGrid import MethodBasedOnHallAndGrid
 import math
 
 
-class RandomizedRoadmapGridMethod(AlgoritmsBasedOnHallAndGrid, SearchMethodAbstract, ABC):
+class RandomizedRoadmapGridMethod(MethodBasedOnHallAndGrid, SearchMethodAbstract, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 150
         super().__init__(findpathdata, debuglog, hall_width)

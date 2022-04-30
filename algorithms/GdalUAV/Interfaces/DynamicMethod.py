@@ -1,7 +1,7 @@
 from abc import ABC
 
 
-class DynamicAlgorithm(ABC):
+class DynamicMethod(ABC):
     def update(self, list_of_geometry_obstacles):
         raise NotImplementedError
 

@@ -9,11 +9,11 @@ from algorithms.GdalUAV.processing.grid.GridForRoadmap import GridForRoadmap
 from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid
 from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalUAV.processing.grid.Hall import Hall
-from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 import math
 
 
-class AlgoritmsBasedOnHallAndGrid(SearchAlgorithm, ABC):
+class MethodBasedOnHallAndGrid(SearchMethodBase, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog, hall_width=150):
         super().__init__(findpathdata, debuglog)
         # constants

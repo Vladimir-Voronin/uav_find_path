@@ -6,8 +6,8 @@ from qgis.core import *
 from ModuleInstruments.Converter import Converter
 from ModuleInstruments.DebugLog import DebugLog
 from ModuleInstruments.FindPathData import FindPathData
-from algorithms.GdalUAV.base.BaseAlgorithims.AlgorithmsBasedOnHallAndGrid import AlgoritmsBasedOnHallAndGrid
-from algorithms.GdalUAV.base.BaseAlgorithims.SearchAlgorthim import SearchAlgorithm
+from algorithms.GdalUAV.base.MethodBasedOnHallAndGrid import MethodBasedOnHallAndGrid
+from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.exceptions.MethodsException import TimeToSucceedException, FailFindPathException
 from algorithms.GdalUAV.processing.Converter import ObjectsConverter
 from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
@@ -27,7 +27,7 @@ class Node:
         self.coordinate_int_y = coordinate_int_y
 
 
-class AStarMethodGrid(AlgoritmsBasedOnHallAndGrid, SearchAlgorithm, ABC):
+class AStarMethodGrid(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         hall_width = 150
         super().__init__(findpathdata, debuglog, hall_width)

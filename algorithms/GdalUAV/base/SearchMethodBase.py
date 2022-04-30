@@ -7,7 +7,7 @@ from ModuleInstruments.FindPathData import FindPathData
 from checks.check_abstract import SearchMethod
 
 
-class SearchAlgorithm(SearchMethod, ABC):
+class SearchMethodBase(SearchMethod, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         # others
         self.current_id = 0
