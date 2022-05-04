@@ -24,41 +24,28 @@
 import inspect
 import os
 import sys
-import threading
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 
-
 from algorithms.GdalUAV.research.ResearchTest import Test
-from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 from algorithms.GdalUAV.research.ResearchPoint import PointsCreater
 
-import qgis
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication, Qt
 from qgis.PyQt.QtGui import QIcon
-from qgis.PyQt.QtWidgets import QAction, QMainWindow, QDialog
+from qgis.PyQt.QtWidgets import QAction, QDialog
 from qgis.core import *
 from qgis.gui import *
 import os.path
-import copy
 import importlib
 
-from ModuleInstruments.Converter import Converter
+from algorithms.GdalUAV.transformation.coordinates.CoordinateTransform import CoordinateTransform
 
-import PyQt5
 # Initialize Qt resources from file resources.py
-from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData, check_if_FindPathData_is_ok
-from .resources import *
+from algorithms.GdalUAV.processing.FindPathData import FindPathData, check_if_FindPathData_is_ok
 # Import the code for the dialog
 from .uav_find_path_dialog import UAVFindPathDialog
-
-import time
-
-from algorithms import RandomizedRoadmapMethod, RandomizedRoadmapGridMethod, RRTDirectMethod, DijkstraMethodGrid, \
-    AStarMethodGrid, DStarMethod, APFMethod, BugMethod, FormerMethod
 
 
 class UAVFindPath:
@@ -242,6 +229,9 @@ class UAVFindPath:
         elif number_of_point == 2:
             text_x = self.dlg.textEdit_target_point_x
             text_y = self.dlg.textEdit_target_point_y
+        elif number_of_point == 3:
+            text_x = self.dlg.textEdit_station_point_x
+            text_y = self.dlg.textEdit_station_point_y
         canvas = QgsMapCanvas()
         canvas.show()
         layer = self.obstacle_layer
@@ -283,13 +273,21 @@ class UAVFindPath:
             return True
         self.error_call("Choose obstacle layer please")
 
+    def click_checkbox_enable_station(self, state):
+        if state == QtCore.Qt.Checked:
+            self.dlg.textEdit_station_point_x.setDisabled(False)
+            self.dlg.textEdit_station_point_y.setDisabled(False)
+            self.dlg.pushButton_set_station.setDisabled(False)
+        else:
+            self.dlg.textEdit_station_point_x.setDisabled(True)
+            self.dlg.textEdit_station_point_y.setDisabled(True)
+            self.dlg.pushButton_set_station.setDisabled(True)
+
     def verification(self):
         # Handle layers
         self.layer_verofication()
 
         # Handle points of square
-        s_point = None
-        t_point = None
         try:
             s_point = QgsPointXY(float(self.dlg.textEdit_start_point_x.toPlainText()),
                                  float(self.dlg.textEdit_start_point_y.toPlainText()))
@@ -298,6 +296,14 @@ class UAVFindPath:
         except ValueError:
             self.error_call("Data entry error")
             return False
+
+        if self.dlg.CheckBox_enable_station.isChecked():
+            try:
+                s_point = QgsPointXY(float(self.dlg.textEdit_station_point_x.toPlainText()),
+                                     float(self.dlg.textEdit_station_point_y.toPlainText()))
+            except ValueError:
+                self.error_call("Station Data entry error")
+                return False
 
         # self.error_call(f"{s_point.x()}, {t_point.x()}")
         if s_point.x() > t_point.x() or s_point.y() > t_point.y():
@@ -320,6 +326,87 @@ class UAVFindPath:
         if self.dlg.textEdit_method_address.toPlainText() is None or self.dlg.textEdit_method_address.toPlainText() == "":
             self.error_call("Enter your method, please")
             return False
+
+        # region Parametrs verefication
+
+        # time_to_stop
+        if self.dlg.textEdit_time_to_stop.toPlainText() is None or self.dlg.textEdit_time_to_stop.toPlainText() == "":
+            self.error_call('Enter "Time one iteration to stop" parameter')
+            return False
+        else:
+            try:
+                time_stop = int(self.dlg.textEdit_time_to_stop.toPlainText())
+                if time_stop <= 0:
+                    self.error_call('Parameter "Time one iteration to stop" can\'t less or equal to 0')
+                    return False
+            except ValueError:
+                self.error_call('Parameter "Time one iteration to stop" not right')
+                return False
+
+        # step_length
+        if self.dlg.textEdit_step_length.toPlainText() is None or self.dlg.textEdit_step_length.toPlainText() == "":
+            self.error_call('Enter "Step of length changing" parameter')
+            return False
+        else:
+            try:
+                step_length = int(self.dlg.textEdit_step_length.toPlainText())
+                if step_length < 20:
+                    self.error_call('Parameter "Step of length changing" can\'t less then 20')
+                    return False
+            except ValueError:
+                self.error_call('Parameter "Step of length changing" not right')
+                return False
+
+        # numb_iterations_one_step
+        if self.dlg.textEdit_numb_iterations_one_step.toPlainText() is None or \
+                self.dlg.textEdit_numb_iterations_one_step.toPlainText() == "":
+            self.error_call('Enter "Numbers of iteration over one step" parameter')
+            return False
+        else:
+            try:
+                numb_iterations_one_step = int(self.dlg.textEdit_numb_iterations_one_step.toPlainText())
+                if numb_iterations_one_step <= 0:
+                    self.error_call('Parameter "Numbers of iteration over one step" can\'t less or equal to 0')
+                    return False
+            except ValueError:
+                self.error_call('Parameter "Numbers of iteration over one step" not right')
+                return False
+
+        # start_length
+        if self.dlg.textEdit_start_length.toPlainText() is None or \
+                self.dlg.textEdit_start_length.toPlainText() == "":
+            self.error_call('Enter "Start length" parameter')
+            return False
+        else:
+            try:
+                start_length = int(self.dlg.textEdit_start_length.toPlainText())
+                if start_length <= 0:
+                    self.error_call('Parameter "Start length" can\'t less or equal to 0')
+                    return False
+            except ValueError:
+                self.error_call('Parameter "Start length" not right')
+                return False
+
+        # max_length
+        if self.dlg.textEdit_max_length.toPlainText() is None or \
+                self.dlg.textEdit_max_length.toPlainText() == "":
+            self.error_call('Enter "Max length" parameter')
+            return False
+        else:
+            try:
+                max_length = int(self.dlg.textEdit_max_length.toPlainText())
+                if max_length <= 0:
+                    self.error_call('Parameter "Max length" can\'t less or equal to 0')
+                    return False
+            except ValueError:
+                self.error_call('Parameter "Max length" not right')
+                return False
+
+        if start_length >= max_length:
+            self.error_call("start length should be less than max length")
+            return False
+
+        # endregion
 
         return True
 
@@ -356,7 +443,7 @@ class UAVFindPath:
         # create geometry obstacle
         obstacles = QgsVectorLayer(self.obstacle_layer.source(), self.obstacle_layer.name(),
                                    self.obstacle_layer.providerType())
-        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, self.project)
+        source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, self.project)
 
         list_of_geom = []
         for polygon in source_list_of_geometry_obstacles:
@@ -434,25 +521,6 @@ class UAVFindPath:
 
         Test.run_test_from_plugin(points_pares, self.method, self.project, layer_with_obstacles,
                                   self.path_to_save_layers)
-        return
-
-        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(layer_with_obstacles, self.project)
-
-        find_path_data = FindPathData(self.project, self.start_point, self.target_point,
-                                      layer_with_obstacles,
-                                      self.path_to_save_layers, self.dlg.checkBox_create_debug_layers.isChecked(),
-                                      source_list_of_geometry_obstacles)
-
-        if check_if_FindPathData_is_ok(find_path_data):
-            my_algorithm = self.algorithm_dict[self.dlg.comboBox_select_search_method.currentText()]
-
-            current_algorithm = my_algorithm(find_path_data, debug_log)
-            current_algorithm.run()
-            current_algorithm.visualize()
-            self.dlg.textEdit_debug_info.setText(current_algorithm.debuglog.get_info())
-            # clean resources
-            self.update_combo_box_layers()
-            self.dlg.comboBox_select_obstacles.setCurrentIndex(0)
 
     def run(self):
         """Run method that performs all the real work"""
@@ -462,12 +530,19 @@ class UAVFindPath:
         if self.first_start:
             self.first_start = False
             self.dlg = UAVFindPathDialog()
+
             # button logic
             self.dlg.pushButton_start_point.clicked.connect(lambda: self.point_button_clicked(1))
             self.dlg.pushButton_target_point.clicked.connect(lambda: self.point_button_clicked(2))
+            self.dlg.pushButton_set_station.clicked.connect(lambda: self.point_button_clicked(3))
             self.dlg.comboBox_select_obstacles.currentIndexChanged.connect(lambda: self.set_obstacle_layer())
             self.dlg.pushButton_save_folder.clicked.connect(lambda: self.choose_directory())
             self.dlg.pushButton_method_address.clicked.connect(lambda: self.choose_module_file())
+            self.dlg.textEdit_station_point_x.setDisabled(True)
+            self.dlg.textEdit_station_point_y.setDisabled(True)
+            self.dlg.pushButton_set_station.setDisabled(True)
+
+            self.dlg.CheckBox_enable_station.stateChanged.connect(self.click_checkbox_enable_station)
             self.dlg.pushButton_run.clicked.connect(lambda: self.press_run())
 
         self.project = QgsProject.instance()
