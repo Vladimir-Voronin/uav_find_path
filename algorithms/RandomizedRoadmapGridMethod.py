@@ -4,9 +4,9 @@ from abc import ABC
 from qgis.core import *
 from qgis.analysis import QgsGraph, QgsNetworkDistanceStrategy
 
-from ModuleInstruments.Converter import Converter
+from algorithms.GdalUAV.transformation.coordinates.CoordinateTransform import CoordinateTransform
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.GdalUAV.processing.calculations.Graphs import GdalGraphSearcher
 from algorithms.GdalUAV.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
@@ -190,7 +190,7 @@ if __name__ == '__main__':
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
-        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, proj)
+        source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, proj)
         find_path_data = FindPathData(proj, point1, point2, obstacles, r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
                                       False,
                                       source_list_of_geometry_obstacles)

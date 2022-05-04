@@ -3,7 +3,7 @@ from abc import ABC
 from qgis._core import QgsGeometry, QgsPointXY, QgsFeature
 
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.processing.Converter import ObjectsConverter
 from algorithms.GdalUAV.processing.grid.Hall import Hall

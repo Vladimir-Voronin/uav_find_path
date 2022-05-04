@@ -3,9 +3,9 @@ import time
 import tracemalloc
 
 from qgis.core import *
-from ModuleInstruments.Converter import Converter
+from algorithms.GdalUAV.transformation.coordinates.CoordinateTransform import CoordinateTransform
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.APFMethod import APFMethod
 from algorithms.GdalUAV.processing.calculations.ObjectsCalculations import length_of_path_from_feats_lines
 import csv
@@ -100,7 +100,7 @@ class Test:
                         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
                         obstacles = QgsVectorLayer(path)
-                        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, proj)
+                        source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, proj)
                         find_path_data = FindPathData(proj, point1, point2, obstacles,
                                                       r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
                                                       False,

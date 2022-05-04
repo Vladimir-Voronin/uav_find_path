@@ -4,7 +4,7 @@ import time
 
 from qgis._core import QgsGeometry, QgsPointXY, QgsApplication, QgsProject, QgsVectorLayer
 import csv
-from ModuleInstruments.Converter import Converter
+from algorithms.GdalUAV.transformation.coordinates.CoordinateTransform import CoordinateTransform
 from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
 
     # create geometry obstacle
     obstacles = QgsVectorLayer(path)
-    source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, proj)
+    source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, proj)
 
     list_of_geom = []
     for polygon in source_list_of_geometry_obstacles:

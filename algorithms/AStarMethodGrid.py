@@ -3,9 +3,9 @@ import time
 from abc import ABC
 
 from qgis.core import *
-from ModuleInstruments.Converter import Converter
+from algorithms.GdalUAV.transformation.coordinates.CoordinateTransform import CoordinateTransform
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.GdalUAV.base.MethodBasedOnHallAndGrid import MethodBasedOnHallAndGrid
 from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.exceptions.MethodsException import TimeToSucceedException, FailFindPathException
@@ -35,6 +35,8 @@ class AStarMethodGrid(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
         cell_target = self.grid.difine_point(self.target_point_geometry)
         self.target_point_expand = GeometryPointExpand(self.target_point, cell_target.n_row,
                                                        cell_target.n_column)
+
+        self.grid.visualize(self.project)
 
         self.point_search_distance = 2
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
@@ -195,12 +197,12 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4426100.417791245, 5956993.659851409))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4426191.372692758, 5956952.100184776))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4426738.37, 5956984.85))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428050.31,5957822.88))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
-        source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, proj)
+        source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, proj)
         find_path_data = FindPathData(proj, point1, point2, obstacles, r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
                                       False,
                                       source_list_of_geometry_obstacles)

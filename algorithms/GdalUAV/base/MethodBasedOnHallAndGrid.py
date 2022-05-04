@@ -3,7 +3,7 @@ from abc import ABC
 from qgis.core import *
 
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.GdalUAV.processing.Converter import ObjectsConverter
 from algorithms.GdalUAV.processing.grid.GridForRoadmap import GridForRoadmap
 from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid

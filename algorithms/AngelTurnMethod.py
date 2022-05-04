@@ -2,7 +2,7 @@ from qgis._analysis import QgsGraph, QgsNetworkDistanceStrategy
 from qgis.core import *
 
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
 from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 from algorithms.addition.Decorators import measuretime

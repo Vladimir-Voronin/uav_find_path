@@ -2,7 +2,7 @@ from abc import ABC
 
 from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 
 from checks.check_abstract import SearchMethod
 

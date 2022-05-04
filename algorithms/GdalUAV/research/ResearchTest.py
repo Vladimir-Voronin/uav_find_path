@@ -5,9 +5,9 @@ import tracemalloc
 
 from openpyxl import Workbook
 from qgis.core import *
-from ModuleInstruments.Converter import Converter
+from algorithms.GdalUAV.transformation.coordinates.CoordinateTransform import CoordinateTransform
 from ModuleInstruments.DebugLog import DebugLog
-from ModuleInstruments.FindPathData import FindPathData
+from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.AStarMethod import AStarMethod
 from algorithms.GdalUAV.processing.calculations.ObjectsCalculations import length_of_path_from_feats_lines
 import csv
@@ -121,7 +121,7 @@ class Test:
             current_row_average = 3
             current_row_fail = 3
 
-            source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacle_layer, proj)
+            source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacle_layer, proj)
 
             previous_length = 10000000
 
@@ -282,7 +282,7 @@ def run_test_from_code(list_of_couples, methods_list):
                     path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
                     obstacles = QgsVectorLayer(path)
-                    source_list_of_geometry_obstacles = Converter.get_list_of_poligons_in_3395(obstacles, proj)
+                    source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, proj)
                     find_path_data = FindPathData(proj, point1, point2, obstacles,
                                                   r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
                                                   False,

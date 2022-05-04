@@ -1,7 +1,7 @@
 from qgis._core import QgsCoordinateReferenceSystem, QgsCoordinateTransform, QgsGeometry
 
 
-class Converter:
+class CoordinateTransform:
     @staticmethod
     def get_list_of_poligons_in_3395(obstacles, project):
         features = obstacles.getFeatures()
