@@ -188,6 +188,8 @@ class RRTDirectMethod(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
         self.debuglog.end_block("find pre min path")
         self.debuglog.start_block("get final path")
 
+        self.list_of_treenodes.append(self.last_node)
+        
         path_feats = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
         path_feats.reverse()
         self.final_path = self.__get_shorter_path(path_feats, 3)
@@ -225,8 +227,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4426633.9, 5957487.3))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4426401.5, 5957303.1))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428288.22, 5955188.73))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428577.28, 5955405.37))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

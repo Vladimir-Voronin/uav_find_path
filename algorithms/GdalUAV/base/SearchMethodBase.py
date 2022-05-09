@@ -2,12 +2,11 @@ from abc import ABC
 
 from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
+from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
 from algorithms.GdalUAV.processing.FindPathData import FindPathData
 
-from checks.check_abstract import SearchMethod
 
-
-class SearchMethodBase(SearchMethod, ABC):
+class SearchMethodBase(SearchMethodAbstract, ABC):
     def __init__(self, findpathdata: FindPathData, debuglog: DebugLog):
         # others
         self.current_id = 0

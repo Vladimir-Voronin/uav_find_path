@@ -5,7 +5,7 @@ from qgis.core import *
 from ModuleInstruments.DebugLog import DebugLog
 from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.GdalUAV.processing.Converter import ObjectsConverter
-from algorithms.GdalUAV.processing.grid.GridForRoadmap import GridForRoadmap
+from algorithms.GdalUAV.processing.grid.GridForSearchMethods import GridForSearchMethods
 from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid
 from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpand
 from algorithms.GdalUAV.processing.grid.Hall import Hall
@@ -43,7 +43,7 @@ class MethodBasedOnHallAndGrid(SearchMethodBase, ABC):
         number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step_of_the_grid)
         number_of_columns = math.ceil((self.right_x - self.left_x) / self.step_of_the_grid)
 
-        grid = GridForRoadmap(number_of_rows, number_of_columns, self.step_of_the_grid, self.bottom_y, self.left_x)
+        grid = GridForSearchMethods(number_of_rows, number_of_columns, self.step_of_the_grid, self.bottom_y, self.left_x)
 
         lx = self.left_x
         by = self.bottom_y

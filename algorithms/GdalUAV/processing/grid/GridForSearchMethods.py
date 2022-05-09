@@ -6,7 +6,7 @@ from algorithms.GdalUAV.processing.GeometryPointExpand import GeometryPointExpan
 from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
-class GridForRoadmap:
+class GridForSearchMethods:
     def __init__(self, row, column, step_of_the_grid, bottom_y, left_x):
         self.cells = np.zeros((row, column), dtype=CellOfTheGrid)
         self.step_of_the_grid = step_of_the_grid
@@ -145,7 +145,7 @@ class GridForRoadmap:
 
 
 if __name__ == "__main__":
-    a = GridForRoadmap(2, 4)
+    a = GridForSearchMethods(2, 4)
     b = CellOfTheGrid(1, 1, 2, 2)
     a.add_cell_by_coordinates(b, 0, 1)
     print(a.cells)

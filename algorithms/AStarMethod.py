@@ -14,13 +14,17 @@ from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
 class Node:
-    def __init__(self, point, g, target_point, prev_node, coordinate_int_x, coordinate_int_y):
+    def __init__(self, point, g, target_point, prev_node, coordinate_int_x, coordinate_int_y, coef=1):
         self.point = point
         self.g = g
         x_full_difference = target_point.x() - point.x()
         y_full_difference = target_point.y() - point.y()
         self.h = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
-        self.sum = self.g + self.h
+        if prev_node is not None:
+            self.diij_weight = prev_node.diij_weight + g
+        else:
+            self.diij_weight = g
+        self.sum = self.diij_weight + coef * self.h
         self.prev_node = prev_node
         self.coordinate_int_x = coordinate_int_x
         self.coordinate_int_y = coordinate_int_y
@@ -32,6 +36,7 @@ class AStarMethod(MethodBasedOnHallOnly, SearchMethodBase, ABC):
         super().__init__(findpathdata, debuglog, hall_width)
 
         self.point_search_distance = 2
+        self.coef_heuristic = 1.2
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
         self.open_list = []
         self.closed_list = []
@@ -63,10 +68,10 @@ class AStarMethod(MethodBasedOnHallOnly, SearchMethodBase, ABC):
                 if point:
                     if (x == 1 or x == -1) and (y == 1 or y == -1):
                         new_node = Node(point, self.point_search_distance_diagonal, self.target_point,
-                                        node, new_x, new_y)
+                                        node, new_x, new_y, self.coef_heuristic)
                     else:
                         new_node = Node(point, self.point_search_distance, self.target_point, node,
-                                        new_x, new_y)
+                                        new_x, new_y, self.coef_heuristic)
                     self.open_list.append(new_node)
                     self.all_nodes_list.append(new_node)
                     self.all_nodes_list_coor.append([new_x, new_y])
@@ -96,7 +101,7 @@ class AStarMethod(MethodBasedOnHallOnly, SearchMethodBase, ABC):
         self.list_of_path.reverse()
 
     def __start_searching(self):
-        start_node = Node(self.starting_point, 0, self.target_point, None, 0, 0)
+        start_node = Node(self.starting_point, 0, self.target_point, None, 0, 0, self.coef_heuristic)
         self.open_list.append(start_node)
         self.all_nodes_list.append(start_node)
         self.all_nodes_list_coor.append([0, 0])
@@ -113,7 +118,8 @@ class AStarMethod(MethodBasedOnHallOnly, SearchMethodBase, ABC):
                                                    self.target_point])
 
                 if self.multi_polygon_geometry.distance(line):
-                    self.last_node = Node(self.target_point, 0, self.target_point, current_node, 0, 0)
+                    self.last_node = Node(self.target_point, 0, self.target_point, current_node, 0, 0,
+                                          self.coef_heuristic)
                     self.is_succes = True
                     break
             self.open_list.remove(current_node)
@@ -167,8 +173,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4426738.37, 5956984.85))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428032.01, 5957923.15))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428288.22, 5955188.73))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428577.28, 5955405.37))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

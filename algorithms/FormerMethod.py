@@ -318,6 +318,8 @@ class FormerMethod(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
         ant_graph.expire()
         # self.visualize_ant_edges(array)
 
+        self.visualize_ant_edges(array)
+
         points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
         return points_path
 
@@ -394,8 +396,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4427959.83, 5955014.48))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428148.92, 5955194.46))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428248.30,5955188.71))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428369.89,5955263.35))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

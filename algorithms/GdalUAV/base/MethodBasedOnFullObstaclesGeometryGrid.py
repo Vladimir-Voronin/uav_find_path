@@ -6,7 +6,7 @@ from ModuleInstruments.DebugLog import DebugLog
 from algorithms.GdalUAV.processing.FindPathData import FindPathData
 from algorithms.GdalUAV.base.SearchMethodBase import SearchMethodBase
 from algorithms.GdalUAV.processing.grid.CellOfTheGrid import CellOfTheGrid
-from algorithms.GdalUAV.processing.grid.GridForRoadmap import GridForRoadmap
+from algorithms.GdalUAV.processing.grid.GridForSearchMethods import GridForSearchMethods
 import time
 
 
@@ -58,7 +58,7 @@ class MethodBasedOnFullObstaclesGeometryGrid(SearchMethodBase, ABC):
         if left_x == sys.float_info.max or right_x == sys.float_info.min or bottom_y == sys.float_info.max or \
                 top_y == sys.float_info.min:
             if len(self.source_list_of_geometry_obstacles) == 0:
-                return GridForRoadmap(0, 0)
+                return GridForSearchMethods(0, 0)
             else:
                 raise Exception("Problem with geometry of obstacles layer")
 
@@ -66,7 +66,7 @@ class MethodBasedOnFullObstaclesGeometryGrid(SearchMethodBase, ABC):
 
         number_of_rows = math.ceil((self.top_y - self.bottom_y) / self.step_of_the_grid)
         number_of_columns = math.ceil((self.right_x - self.left_x) / self.step_of_the_grid)
-        grid = GridForRoadmap(number_of_rows, number_of_columns)
+        grid = GridForSearchMethods(number_of_rows, number_of_columns)
         print("rows: ", number_of_columns)
         print("columns: ", number_of_columns)
         bx = self.left_x

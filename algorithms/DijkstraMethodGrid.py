@@ -32,7 +32,7 @@ class DijkstraMethodGrid(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
         self.target_point_expand = GeometryPointExpand(self.target_point, cell_target.n_row,
                                                        cell_target.n_column)
 
-        self.point_search_distance = 2
+        self.point_search_distance = 3
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
         self.open_list = []
         self.closed_list = []
@@ -193,8 +193,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4426100.417791245, 5956993.659851409))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4426191.372692758, 5956952.100184776))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428288.22, 5955188.73))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428577.28, 5955405.37))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

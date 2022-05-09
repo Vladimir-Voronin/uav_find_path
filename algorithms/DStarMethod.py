@@ -16,13 +16,17 @@ from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
 class Node:
-    def __init__(self, point_expand, g, target_point, prev_node, coordinate_int_x, coordinate_int_y):
+    def __init__(self, point_expand, g, target_point, prev_node, coordinate_int_x, coordinate_int_y, coef=1):
         self.point_expand = point_expand
         self.g = g
         x_full_difference = target_point.x() - point_expand.point.x()
         y_full_difference = target_point.y() - point_expand.point.y()
         self.h = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
-        self.sum = self.g + self.h
+        if prev_node is not None:
+            self.diij_weight = prev_node.diij_weight + g
+        else:
+            self.diij_weight = g
+        self.sum = self.diij_weight + coef * self.h
         self.prev_node = prev_node
         self.coordinate_int_x = coordinate_int_x
         self.coordinate_int_y = coordinate_int_y

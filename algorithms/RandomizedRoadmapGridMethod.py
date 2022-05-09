@@ -34,12 +34,6 @@ class RandomizedRoadmapGridMethod(MethodBasedOnHallAndGrid, SearchMethodAbstract
         super()._create_grid()
         self.debuglog.end_block("create grid")
 
-    def __get_shorter_path(self, feats, increase_points=0):
-        self.debuglog.start_block("get shorter path")
-        result = super()._get_shorter_path(feats, increase_points)
-        self.debuglog.end_block("get shorter path")
-        return result
-
     def __set_geometry_to_grid(self):
         self.debuglog.start_block("set geometry to grid")
         super()._set_geometry_to_grid()
@@ -129,7 +123,6 @@ class RandomizedRoadmapGridMethod(MethodBasedOnHallAndGrid, SearchMethodAbstract
             qgs_graph.addEdge(point1, point2, [QgsNetworkDistanceStrategy().cost(line.length(), feat)])
 
         self.default_graph_feats = ObjectsConverter.list_of_geometry_to_feats(list_of_lines)
-        self.debuglog.end_block("graph", True)
         print(self.debuglog.get_info())
         return qgs_graph
 
@@ -155,7 +148,7 @@ class RandomizedRoadmapGridMethod(MethodBasedOnHallAndGrid, SearchMethodAbstract
 
         self.debuglog.info("get_pre_final_path")
 
-        self.final_path = self.__get_shorter_path(self.final_path, 2)
+        self.final_path = super()._get_shorter_path(self.final_path, 10, 60)
 
         self.debuglog.info("get_final_path")
 
@@ -172,7 +165,11 @@ class RandomizedRoadmapGridMethod(MethodBasedOnHallAndGrid, SearchMethodAbstract
         if __name__ == '__main__':
             Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\points_import.shp",
                                                      self.random_points_feats)
-            Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+            Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\check_line.shp",
+                                                        self.default_graph_feats)
+            Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_tree.shp",
+                                                          self.min_short_path_tree_feats)
+            Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
                                                      self.final_path)
 
 
@@ -185,14 +182,14 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428094.059841852, 5955751.246513667))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428670.438183919, 5957666.393507188))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428210.45, 5955160.67))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428636.43, 5955381.07))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
         source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, proj)
         find_path_data = FindPathData(proj, point1, point2, obstacles, r"C:\Users\Neptune\Desktop\Voronin qgis\shp",
-                                      False,
+                                      True,
                                       source_list_of_geometry_obstacles)
         debug_log = DebugLog()
         check = RandomizedRoadmapGridMethod(find_path_data, debug_log)

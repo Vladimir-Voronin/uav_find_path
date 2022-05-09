@@ -15,13 +15,17 @@ from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
 
 
 class Node:
-    def __init__(self, point_expand, g, target_point, prev_node, coordinate_int_x, coordinate_int_y):
+    def __init__(self, point_expand, g, target_point, prev_node, coordinate_int_x, coordinate_int_y, coef=1):
         self.point_expand = point_expand
         self.g = g
         x_full_difference = target_point.x() - point_expand.point.x()
         y_full_difference = target_point.y() - point_expand.point.y()
         self.h = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
-        self.sum = self.g + self.h
+        if prev_node is not None:
+            self.diij_weight = prev_node.diij_weight + g
+        else:
+            self.diij_weight = g
+        self.sum = self.diij_weight + coef * self.h
         self.prev_node = prev_node
         self.coordinate_int_x = coordinate_int_x
         self.coordinate_int_y = coordinate_int_y
@@ -39,6 +43,7 @@ class AStarMethodGrid(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
         self.grid.visualize(self.project)
 
         self.point_search_distance = 2
+        self.coef_heuristic = 1.2
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
         self.open_list = []
         self.closed_list = []
@@ -90,10 +95,10 @@ class AStarMethodGrid(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
                         if point_expand:
                             if (x == 1 or x == -1) and (y == 1 or y == -1):
                                 new_node = Node(point_expand, self.point_search_distance_diagonal, self.target_point,
-                                                node, new_x, new_y)
+                                                node, new_x, new_y, self.coef_heuristic)
                             else:
                                 new_node = Node(point_expand, self.point_search_distance, self.target_point, node,
-                                                new_x, new_y)
+                                                new_x, new_y, self.coef_heuristic)
                             self.open_list.append(new_node)
                             self.all_nodes_list.append(new_node)
                             self.all_nodes_list_coor.append([new_x, new_y])
@@ -124,7 +129,7 @@ class AStarMethodGrid(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
 
     def __start_searching(self):
         start_point_expand = self.grid.get_point_expand_by_point(self.starting_point)
-        start_node = Node(start_point_expand, 0, self.target_point, None, 0, 0)
+        start_node = Node(start_point_expand, 0, self.target_point, None, 0, 0, self.coef_heuristic)
         self.open_list.append(start_node)
         self.all_nodes_list.append(start_node)
         self.all_nodes_list_coor.append([0, 0])
@@ -140,7 +145,8 @@ class AStarMethodGrid(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
                                                    self.target_point])
                 geometry = self.grid.get_multipolygon_by_points(current_node.point_expand, self.target_point_expand)
                 if geometry.distance(line):
-                    self.last_node = Node(self.target_point_expand, 0, self.target_point, current_node, 0, 0)
+                    self.last_node = Node(self.target_point_expand, 0, self.target_point, current_node, 0, 0,
+                                          self.coef_heuristic)
                     self.is_succes = True
                     break
             self.open_list.remove(current_node)
@@ -198,7 +204,7 @@ if __name__ == '__main__':
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
         point1 = QgsGeometry.fromPointXY(QgsPointXY(4426738.37, 5956984.85))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428050.31,5957822.88))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428050.31, 5957822.88))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)
