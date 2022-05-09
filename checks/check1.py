@@ -1,24 +1,31 @@
-import importlib
-import threading
-import time
-from math import sqrt
-
-from memory_profiler import profile, memory_usage
-import tracemalloc
-
-import sys
+import random
 
 
-def do(array):
-    is_here = [False] * (max(array) + 2)
-    for i in array:
-        if i > 0:
-            is_here[i] = True
+def select_sort(my_list):
+    len_ = len(my_list)
+    minimum = None
+    for i in range(len_):
+        minimum = i
+        for k in range(i + 1, len_):
+            if my_list[k] < my_list[minimum]:
+                minimum = k
+        my_list[i], my_list[minimum] = my_list[minimum], my_list[i]
+    return my_list
 
-    for i in range(1, len(is_here)):
-        if is_here[i] == False:
-            return i
+
+def insert_sort(my_list):
+    len_ = len(my_list)
+    for i in range(len_ - 1):
+        for k in range(i, -1, -1):
+            if my_list[k + 1] < my_list[k]:
+                my_list[k + 1], my_list[k] = my_list[k], my_list[k + 1]
+            else:
+                break
+    return my_list
 
 
-res = do([7, 8, 1, 9, 3, 6, 2, 4, 5, 10])
-print(res)
+check_list = []
+
+for i in range(10000):
+    check_list.append(random.randint(0, 100000))
+print(insert_sort(check_list))

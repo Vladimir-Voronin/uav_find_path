@@ -12,6 +12,7 @@ from algorithms.AStarMethod import AStarMethod
 from algorithms.GdalUAV.processing.calculations.ObjectsCalculations import length_of_path_from_feats_lines
 import csv
 import openpyxl
+import pandas as pd
 
 from algorithms.GdalUAV.exceptions.MethodsException import FailFindPathException, TimeToSucceedException
 from pympler import muppy
@@ -80,11 +81,13 @@ class Test:
         full_name = doc_name + '_' + method.__name__ + str(now.year) + '_' + str(now.month) + '_' + str(
             now.day) + '_' + str(now.hour) + '_' + str(now.minute) + '_' + str(now.second)
 
-        full_name = save_doc_path + '/' + full_name + '.xlsx'
-        wb = Workbook(full_name)
-        wb.save(full_name)
+        full_name_xlsx = save_doc_path + '/' + full_name + '.xlsx'
+        full_name_csv = save_doc_path + '/' + full_name + '.csv'
+        wb = Workbook(full_name_xlsx)
+        wb.save(full_name_xlsx)
+
         # Define variable to load the wookbook
-        wookbook = openpyxl.load_workbook(full_name)
+        wookbook = openpyxl.load_workbook(full_name_xlsx)
 
         list_of_couples = []
         for pare in list_of_pares:
@@ -223,7 +226,7 @@ class Test:
                     worksheet.cell(current_row_fail, 19, value=error)
                     current_row_fail += 1
 
-                wookbook.save(full_name)
+                wookbook.save(full_name_xlsx)
                 if full_time > time_to_stop:
                     break
 
@@ -240,7 +243,9 @@ class Test:
             worksheet.cell(current_row_average, 13, value=numb_of_obst_av)
             worksheet.cell(current_row_average, 14,
                            value=f"{succeed_counter / (succeed_counter + fail_counter)}")
-            wookbook.save(full_name)
+            wookbook.save(full_name_xlsx)
+            read_file = pd.read_excel(f'{full_name_xlsx}')
+            read_file.to_csv(f'{full_name_csv}', index=None, header=True)
 
         finally:
             wookbook.close()

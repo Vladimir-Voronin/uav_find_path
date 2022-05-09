@@ -28,6 +28,8 @@ import sys
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
 
+from algorithms.GdalUAV.qgis.visualization.Visualizer import Visualizer
+from algorithms.GdalUAV.Interfaces.SearchMethod import SearchMethodAbstract
 from algorithms.GdalUAV.research.ResearchTest import Test
 from algorithms.GdalUAV.research.ResearchPoint import PointsCreater
 
@@ -87,9 +89,17 @@ class UAVFindPath:
         self.obstacle_layer = None
         self.start_point = None
         self.target_point = None
+        self.station_point = None
         self.path_to_save_layers = None
         self.method_address = None
         self.method = None
+
+        # parametrs
+        self.time_to_stop = None
+        self.length_step = None
+        self.numbers_of_iter_one_step = None
+        self.start_length = None
+        self.max_length = None
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
@@ -287,6 +297,9 @@ class UAVFindPath:
         # Handle layers
         self.layer_verofication()
 
+        s_point = None
+        t_point = None
+
         # Handle points of square
         try:
             s_point = QgsPointXY(float(self.dlg.textEdit_start_point_x.toPlainText()),
@@ -297,12 +310,20 @@ class UAVFindPath:
             self.error_call("Data entry error")
             return False
 
+        station_point = None
         if self.dlg.CheckBox_enable_station.isChecked():
             try:
-                s_point = QgsPointXY(float(self.dlg.textEdit_station_point_x.toPlainText()),
-                                     float(self.dlg.textEdit_station_point_y.toPlainText()))
+                station_point = QgsPointXY(float(self.dlg.textEdit_station_point_x.toPlainText()),
+                                           float(self.dlg.textEdit_station_point_y.toPlainText()))
             except ValueError:
                 self.error_call("Station Data entry error")
+                return False
+
+        if self.dlg.CheckBox_enable_station.isChecked():
+            if s_point.x() <= station_point.x() <= t_point.x() and s_point.y() <= station_point.y() <= t_point.y():
+                pass
+            else:
+                self.error_call("Station is not inside the territory")
                 return False
 
         # self.error_call(f"{s_point.x()}, {t_point.x()}")
@@ -345,16 +366,16 @@ class UAVFindPath:
 
         # step_length
         if self.dlg.textEdit_step_length.toPlainText() is None or self.dlg.textEdit_step_length.toPlainText() == "":
-            self.error_call('Enter "Step of length changing" parameter')
+            self.error_call('Enter "Length step" parameter')
             return False
         else:
             try:
                 step_length = int(self.dlg.textEdit_step_length.toPlainText())
                 if step_length < 20:
-                    self.error_call('Parameter "Step of length changing" can\'t less then 20')
+                    self.error_call('Parameter "Length step" can\'t less then 20')
                     return False
             except ValueError:
-                self.error_call('Parameter "Step of length changing" not right')
+                self.error_call('Parameter "Length step" not right')
                 return False
 
         # numb_iterations_one_step
@@ -419,6 +440,11 @@ class UAVFindPath:
             QgsPointXY(float(self.dlg.textEdit_target_point_x.toPlainText()),
                        float(self.dlg.textEdit_target_point_y.toPlainText())))
 
+        if self.dlg.CheckBox_enable_station.isChecked():
+            self.station_point = QgsGeometry.fromPointXY(
+                QgsPointXY(float(self.dlg.textEdit_station_point_x.toPlainText()),
+                           float(self.dlg.textEdit_station_point_y.toPlainText())))
+
         self.path_to_save_layers = self.dlg.textEdit_save_folder.toPlainText()
 
         # Import module and get method
@@ -431,12 +457,21 @@ class UAVFindPath:
         for name, obj in inspect.getmembers(MethodModule):
             if inspect.isclass(obj):
                 if str(obj).find("module_to_use") != -1 and str(obj).find("Method") != -1:
-                    self.method = obj
-                    correct = True
-                    break
+                    if issubclass(obj, SearchMethodAbstract):
+                        self.method = obj
+                        correct = True
+                        break
         if not correct:
             self.error_call("This module file is not correct.")
             return False
+
+        # set parametrs
+        self.time_to_stop = int(self.dlg.textEdit_time_to_stop.toPlainText())
+        self.length_step = int(self.dlg.textEdit_step_length.toPlainText())
+        self.numbers_of_iter_one_step = int(self.dlg.textEdit_numb_iterations_one_step.toPlainText())
+        self.start_length = int(self.dlg.textEdit_start_length.toPlainText())
+        self.max_length = int(self.dlg.textEdit_max_length.toPlainText())
+
         return True
 
     def get_geometry(self):
@@ -461,10 +496,10 @@ class UAVFindPath:
 
     def create_points(self, geometry, layer_with_obstacles):
         # general variables
-        the_max_possible_distance = 2500
-        numbers_of_points_for_each_iteration = 20
-        start_length = 100
-        step = 100
+        the_max_possible_distance = self.max_length
+        numbers_of_points_for_each_iteration = self.numbers_of_iter_one_step
+        start_length = self.start_length
+        step = self.length_step
         access_min = 10
         access_max = 50
 
@@ -484,9 +519,9 @@ class UAVFindPath:
         max_distance = PointsCreater.get_max_research_distance(s_point.x(), s_point.y(), t_point.x(), t_point.y())
         if max_distance < start_length:
             self.error_call("Too small square. Please choose another area")
+            return False
 
         max_distance = the_max_possible_distance if max_distance >= the_max_possible_distance else max_distance
-        self.error_call(f"{max_distance}")
 
         # add point pares
         pointspares_list = []
@@ -498,6 +533,58 @@ class UAVFindPath:
             new_list = PointsCreater.create_points(numbers_of_points_for_each_iteration, start_length, access_min,
                                                    access_max, geometry, s_point.x(), s_point.y(), t_point.x(),
                                                    t_point.y())
+            start_length += step
+            self.dlg.progressBar.setValue(i + 1)
+            for i in new_list:
+                pointspares_list.append(i)
+
+        return pointspares_list
+
+    def create_points_for_station(self, geometry, layer_with_obstacles):
+        # general variables
+        the_max_possible_distance = self.max_length
+        numbers_of_points_for_each_iteration = self.numbers_of_iter_one_step
+        start_length = self.start_length
+        step = self.length_step
+        access_min = 10
+        access_max = 50
+
+        # get max distance for this squeare
+        start_point = self.start_point.asPoint()
+        target_point = self.target_point.asPoint()
+        station_point = self.station_point.asPoint()
+
+        # need to change "project" to "QgsProject.instance" when import to module
+        transformcontext = self.project.transformContext()
+        general_projection = QgsCoordinateReferenceSystem("EPSG:3395")
+        xform = QgsCoordinateTransform(layer_with_obstacles.crs(), general_projection, transformcontext)
+
+        # type: QgsPointXY
+        start_point = xform.transform(start_point)
+        target_point = xform.transform(target_point)
+        station_point = xform.transform(station_point)
+
+        max_distance = PointsCreater.get_max_distance_from_station(start_point.x(), start_point.y(), target_point.x(),
+                                                                   target_point.y(), station_point.x(),
+                                                                   station_point.y())
+        if max_distance < start_length:
+            self.error_call(f"{max_distance}: Too small square. Please choose another area")
+            return False
+
+        max_distance = the_max_possible_distance if max_distance >= the_max_possible_distance else max_distance
+
+        # add point pares
+        pointspares_list = []
+
+        self.dlg.progressBar.setMinimum(0)
+        self.dlg.progressBar.setMaximum(int(max_distance / step))
+        for i in range(int(max_distance / step)):
+            self.dlg.label_progress.setText(f"Put points on distance {(i + 1) * step}")
+            new_list = PointsCreater.create_points_for_station(numbers_of_points_for_each_iteration, start_length,
+                                                               access_min,
+                                                               access_max, geometry, start_point.x(), start_point.y(),
+                                                               target_point.x(),
+                                                               target_point.y(), station_point.x(), station_point.y())
             start_length += step
             self.dlg.progressBar.setValue(i + 1)
             for i in new_list:
@@ -517,10 +604,20 @@ class UAVFindPath:
 
         layer_with_obstacles = QgsVectorLayer(self.obstacle_layer.source(), self.obstacle_layer.name(),
                                               self.obstacle_layer.providerType())
-        points_pares = self.create_points(geometry, layer_with_obstacles)
 
-        Test.run_test_from_plugin(points_pares, self.method, self.project, layer_with_obstacles,
-                                  self.path_to_save_layers)
+        if self.dlg.CheckBox_enable_station.isChecked():
+            points_pares = self.create_points_for_station(geometry, layer_with_obstacles)
+        else:
+            points_pares = self.create_points(geometry, layer_with_obstacles)
+
+        points_vis = [QgsGeometry.fromPolylineXY([QgsPointXY(point.x1, point.y1), QgsPointXY(point.x2, point.y2)]) for
+                      point in points_pares]
+
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", points_vis)
+
+        if points_pares:
+            Test.run_test_from_plugin(points_pares, self.method, self.project, layer_with_obstacles,
+                                      self.path_to_save_layers, self.time_to_stop)
 
     def run(self):
         """Run method that performs all the real work"""
