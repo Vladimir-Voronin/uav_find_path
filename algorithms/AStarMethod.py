@@ -35,8 +35,8 @@ class AStarMethod(MethodBasedOnHallOnly, SearchMethodBase, ABC):
         hall_width = 150
         super().__init__(findpathdata, debuglog, hall_width)
 
-        self.point_search_distance = 2
-        self.coef_heuristic = 1.2
+        self.point_search_distance = 3
+        self.coef_heuristic = 2
         self.point_search_distance_diagonal = self.point_search_distance * math.sqrt(2)
         self.open_list = []
         self.closed_list = []
@@ -173,9 +173,9 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428288.22, 5955188.73))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428577.28, 5955405.37))
-        path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4413060.21, 5946488.03))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4413442.47, 5946731.07))
+        path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\New_pathes\OsmQuery Rostov Last.shp"
 
         obstacles = QgsVectorLayer(path)
         source_list_of_geometry_obstacles = CoordinateTransform.get_list_of_poligons_in_3395(obstacles, proj)

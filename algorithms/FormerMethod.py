@@ -44,6 +44,24 @@ class AntVertex:
     def get_max_pheromones(self):
         return max(self.edges, key=lambda x: x.pheromone_value)
 
+    def has_edge_equal_to_zero(self):
+        for e in self.edges:
+            if e.pheromone_value == 0:
+                return True
+        return False
+
+    def all_edges_equal_to_zero(self):
+        for e in self.edges:
+            if e.pheromone_value != 0:
+                return False
+        return True
+
+    def all_edged_not_equal_to_zero(self):
+        for e in self.edges:
+            if e.pheromone_value == 0:
+                return False
+        return True
+
 
 class AntEdge:
     def __init__(self, one_vertex: AntVertex, another_vertex: AntVertex):
@@ -77,6 +95,63 @@ class AntGraph:
         for ver in self.target_verteces:
             for edge in ver.edges:
                 edge.pheromone_value = 1
+
+        self.check_verteces = self.target_verteces
+
+    def one_step_if_zero(self, vertex, target):
+        current_edge = None
+        for e in vertex.edges:
+            if e.another_vertex == target or e.one_vertex == target:
+                current_edge = e
+                break
+
+        current_edge.pheromone_value = max(current_edge.pheromone_value,
+                                           vertex.get_max_pheromones().pheromone_value * self.dect_coef)
+
+    def invistigate_for_zero(self):
+        # for vertex in self.all_verteces:
+        #     if vertex.has_edge_equal_to_zero():
+        #         self.one_step_if_zero(vertex)
+        coeficients = [[1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1]]
+        to_handle = self.all_verteces.copy()
+        search = self.target_verteces.copy()
+        for i in search:
+            to_handle.remove(i)
+
+        for vert in search:
+            for e in vert.edges:
+                if e.pheromone_value != 0 and e.another_vertex not in search:
+                    search.append(e.another_vertex)
+                if e.pheromone_value != 0 and e.one_vertex not in search:
+                    search.append(e.one_vertex)
+
+        while len(search) > 0:
+            random_vertex = random.choice(search)
+            stop = False
+            for x, y in coeficients:
+                if isinstance(self.array[random_vertex.coor_x + x, random_vertex.coor_y + y], AntVertex) and self.array[
+                    random_vertex.coor_x + x, random_vertex.coor_y + y].all_edges_equal_to_zero() and self.array[
+                    random_vertex.coor_x + x, random_vertex.coor_y + y] in to_handle:
+                    self.one_step_if_zero(random_vertex, self.array[random_vertex.coor_x + x, random_vertex.coor_y + y])
+                    to_handle.remove(self.array[random_vertex.coor_x + x, random_vertex.coor_y + y])
+                    search.append(self.array[random_vertex.coor_x + x, random_vertex.coor_y + y])
+                    stop = True
+            if not stop:
+                search.remove(random_vertex)
+        # gg = 0
+        # for i in self.all_verteces:
+        #     for e in i.edges:
+        #         if e.pheromone_value != 0:
+        #             print(gg)
+        #             gg += 1
+
+    def invistigate_inhance_by_path(self, path_vertexes, number_of_steps):
+        vertexes = path_vertexes.copy()
+        while len(vertexes) > 0:
+            current_vertex = random.choice(vertexes)
+            vertexes.remove(current_vertex)
+            for i in range(number_of_steps):
+                current_vertex = self.one_random_step(current_vertex)
 
     def one_random_step(self, vertex):
         rand_edge = random.choice(vertex.edges)
@@ -166,7 +241,7 @@ class AntGraph:
         points_path = []
         for i in path_by_vertex:
             points_path.append(i.point)
-        return points_path
+        return path_by_vertex, points_path
 
 
 class FormerMethod(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
@@ -303,31 +378,41 @@ class FormerMethod(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
         start_v = array[split_x][split_y]
 
         ant_graph = AntGraph(array, start_v, 0.95, 0.98)
-        for i in range(5):
-            ant_graph.investigation_from_vertex(random.choice(ant_graph.target_verteces),
-                                                len(ant_graph.all_verteces) * 5)
-        ant_graph.expire()
-        for i in range(len(ant_graph.all_verteces)):
-            ant_graph.investigation_from_vertex(random.choice(ant_graph.all_verteces), 100)
+        ant_graph.invistigate_for_zero()
+        # for i in range(5):
+        #     ant_graph.investigation_from_vertex(random.choice(ant_graph.target_verteces),
+        #                                         len(ant_graph.all_verteces) * 5)
+        # ant_graph.expire()
+        # for i in range(len(ant_graph.all_verteces)):
+        #     ant_graph.investigation_from_vertex(random.choice(ant_graph.all_verteces), 100)
+        #
+        # ant_graph.expire()
+        # for i in range(50):
+        #     ant_graph.investigation_from_vertex(ant_graph.start_vertex, len(ant_graph.all_verteces))
+        #     ant_graph.search_from_start_to_target(len(ant_graph.all_verteces))
+        #
+        # ant_graph.expire()
 
-        ant_graph.expire()
-        for i in range(50):
-            ant_graph.investigation_from_vertex(ant_graph.start_vertex, len(ant_graph.all_verteces))
-            ant_graph.search_from_start_to_target(len(ant_graph.all_verteces))
+        vertexes, points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
 
-        ant_graph.expire()
-        # self.visualize_ant_edges(array)
+        ant_graph.invistigate_inhance_by_path(vertexes, 400)
+        vertexes, points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
+        ant_graph.invistigate_inhance_by_path(vertexes, 400)
+        vertexes, points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
+        ant_graph.invistigate_inhance_by_path(vertexes, 400)
 
-        self.visualize_ant_edges(array)
+        vertexes, points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
+        list_of_path = self.__create_path_from_points(points_path)
 
-        points_path = ant_graph.get_real_path(len(ant_graph.all_verteces))
         return points_path
 
     def __create_path_from_points(self, points_list):
+        result = []
         for i in range(len(points_list) - 1):
             line = QgsGeometry.fromPolylineXY([points_list[i],
                                                points_list[i + 1]])
-            self.list_of_path.append(line)
+            result.append(line)
+        return result
 
     def run(self):
         self.debuglog.start_block("set geometry to the grid block")
@@ -342,7 +427,7 @@ class FormerMethod(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
         points_path = self.__find_path()
         self.debuglog.end_block("__find_path")
 
-        self.__create_path_from_points(points_path)
+        self.list_of_path = self.__create_path_from_points(points_path)
 
         self.final_path = self.__get_shorter_path(self.list_of_path)
 
@@ -383,6 +468,8 @@ class FormerMethod(MethodBasedOnHallAndGrid, SearchMethodBase, ABC):
             Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
                                                         self.list_of_path)
 
+            visual = ObjectsConverter.list_of_geometry_to_feats(self.list_of_path)
+
             Visualizer.update_layer_by_feats_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\short_path.shp",
                                                      self.final_path)
 
@@ -396,8 +483,8 @@ if __name__ == '__main__':
     for i in range(n):
         proj = QgsProject.instance()
         proj.read(r'C:\Users\Neptune\Desktop\Voronin qgis\Voronin qgis.qgs')
-        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428248.30,5955188.71))
-        point2 = QgsGeometry.fromPointXY(QgsPointXY(4428369.89,5955263.35))
+        point1 = QgsGeometry.fromPointXY(QgsPointXY(4428369.476, 5955259.927))
+        point2 = QgsGeometry.fromPointXY(QgsPointXY(4429051.6, 5955594.3))
         path = r"C:\Users\Neptune\Desktop\Voronin qgis\shp\Строения.shp"
 
         obstacles = QgsVectorLayer(path)

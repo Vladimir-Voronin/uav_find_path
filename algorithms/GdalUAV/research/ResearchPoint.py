@@ -79,7 +79,7 @@ class PointsCreater:
         y_full_difference = top_y - bottom_y
         result = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
         result = (result * result) ** 0.5
-        result /= 2
+        result /= 1.7
         integer_div = result // 100
         return 100 * integer_div
 
@@ -96,7 +96,7 @@ class PointsCreater:
             result_bef = math.sqrt(x_full_difference ** 2 + y_full_difference ** 2)
             result_bef = (result_bef * result_bef) ** 0.5
             result = result_bef if result_bef > result else result
-        result /= 2
+        result /= 1.7
         return result
 
 

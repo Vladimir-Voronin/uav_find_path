@@ -116,9 +116,9 @@ class Test:
 
             worksheet['P1'] = f"{method.__name__} Fail"
             worksheet['P2'] = "Points Distance"
-            worksheet['R2'] = "Point1"
-            worksheet['S2'] = "Point2"
-            worksheet['T2'] = "Type of Error"
+            worksheet['Q2'] = "Point1"
+            worksheet['R2'] = "Point2"
+            worksheet['S2'] = "Type of Error"
 
             current_row_succeed = 3
             current_row_average = 3
@@ -182,6 +182,7 @@ class Test:
                     # starting the monitoring
                     tracemalloc.start()
                     _, start_peak = tracemalloc.get_traced_memory()
+                    my_time = time.perf_counter()
                     check.run()
                     _, final_peak = tracemalloc.get_traced_memory()
                     tracemalloc.stop()
@@ -227,8 +228,8 @@ class Test:
                     current_row_fail += 1
 
                 wookbook.save(full_name_xlsx)
-                if full_time > time_to_stop:
-                    break
+                # if full_time > time_to_stop:
+                #     break
 
             time_av = average(time_usage_list)
             memory_av = average(memory_usage_list)

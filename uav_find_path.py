@@ -24,6 +24,8 @@
 import inspect
 import os
 import sys
+import threading
+import time
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(dir_path)
@@ -528,8 +530,9 @@ class UAVFindPath:
 
         self.dlg.progressBar.setMinimum(0)
         self.dlg.progressBar.setMaximum(int(max_distance / step))
-        for i in range(int(max_distance / step)):
+        for i in range(int((max_distance - start_length) / step) + 1):
             self.dlg.label_progress.setText(f"Put points on distance {(i + 1) * step}")
+            time.sleep(1)
             new_list = PointsCreater.create_points(numbers_of_points_for_each_iteration, start_length, access_min,
                                                    access_max, geometry, s_point.x(), s_point.y(), t_point.x(),
                                                    t_point.y())
@@ -578,7 +581,7 @@ class UAVFindPath:
 
         self.dlg.progressBar.setMinimum(0)
         self.dlg.progressBar.setMaximum(int(max_distance / step))
-        for i in range(int(max_distance / step)):
+        for i in range(int((max_distance - start_length) / step) + 1):
             self.dlg.label_progress.setText(f"Put points on distance {(i + 1) * step}")
             new_list = PointsCreater.create_points_for_station(numbers_of_points_for_each_iteration, start_length,
                                                                access_min,
@@ -613,7 +616,8 @@ class UAVFindPath:
         points_vis = [QgsGeometry.fromPolylineXY([QgsPointXY(point.x1, point.y1), QgsPointXY(point.x2, point.y2)]) for
                       point in points_pares]
 
-        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp", points_vis)
+        Visualizer.update_layer_by_geometry_objects(r"C:\Users\Neptune\Desktop\Voronin qgis\shp\min_path.shp",
+                                                    points_vis)
 
         if points_pares:
             Test.run_test_from_plugin(points_pares, self.method, self.project, layer_with_obstacles,
@@ -640,7 +644,8 @@ class UAVFindPath:
             self.dlg.pushButton_set_station.setDisabled(True)
 
             self.dlg.CheckBox_enable_station.stateChanged.connect(self.click_checkbox_enable_station)
-            self.dlg.pushButton_run.clicked.connect(lambda: self.press_run())
+            th = threading.Thread(target=self.press_run)
+            self.dlg.pushButton_run.clicked.connect(target=th.start)
 
         self.project = QgsProject.instance()
 
